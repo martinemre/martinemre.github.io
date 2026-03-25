@@ -14,4 +14,5 @@ group :jekyll_plugins do
   gem "jekyll-algolia"
   gem 'csv'
   gem 'bigdecimal'
+  gem 'ostruct'
 end
