@@ -5,18 +5,6 @@ var store = [{
         "url": "/azure/test1/",
         "teaser": null
       },{
-        "title": "Test",
-        "excerpt":" ","categories": ["Azure"],
-        "tags": ["vnet","networking"],
-        "url": "/azure/TITLE/",
-        "teaser": null
-      },{
-        "title": "Test",
-        "excerpt":" ","categories": ["Azure"],
-        "tags": ["vnet","networking"],
-        "url": "/azure/test/",
-        "teaser": null
-      },{
     "title": "About Me",
     "excerpt":"Hey There ! 👋   I’m Emre, working as Senior Azure Consultant at Ergo.  I hope you find inspiration and useful insights on this blog as we navigate the vast world of technology together. Feel free to join the conversation with your questions or share your own experiences 😊   🏆 Some of the Azure certifications I have:          Microsoft Certified: DevOps Engineer Expert     Microsoft Certified: Azure Virtual Desktop Specialty     Microsoft Certified: Azure Security Engineer Associate     Microsoft Certified: Azure Support Engineer for Connectivity Specialty     Microsoft Certified: Azure Network Engineer Associate     Microsoft Certified: Azure Solutions Architect Expert     Microsoft Certified: Azure Administrator Associate     Microsoft Certified: Azure Solutions Architect Expert (Legacy)     Microsoft Certified: Azure Administrator Associate (Legacy)          ","url": "https://martinemre.github.io/aboutme/"
   },{
@@ -27,10 +15,10 @@ var store = [{
     "excerpt":" ","url": "https://martinemre.github.io/categories/"
   },{
     "title": "Posts by Collection",
-    "excerpt":"                                  ","url": "https://martinemre.github.io/collection-archive/"
+    "excerpt":"                  ","url": "https://martinemre.github.io/collection-archive/"
   },{
     "title": null,
-    "excerpt":"  \t \t\tmartinemre \t\t**\t\t \t\thttps://martinemre.github.io \t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/azure/test/ \t\t\t\thttps://martinemre.github.io/azure/test/ \t\t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/azure/TITLE/ \t\t\t\thttps://martinemre.github.io/azure/TITLE/ \t\t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/azure/test1/ \t\t\t\thttps://martinemre.github.io/azure/test1/ \t\t\t \t\t \t  ","url": "https://martinemre.github.io/feed.xml"
+    "excerpt":"  \t \t\tmartinemre \t\t**\t\t \t\thttps://martinemre.github.io \t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tThu, 01 Jan 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/azure/test1/ \t\t\t\thttps://martinemre.github.io/azure/test1/ \t\t\t \t\t \t  ","url": "https://martinemre.github.io/feed.xml"
   },{
     "title": null,
     "excerpt":"","url": "https://martinemre.github.io/"
