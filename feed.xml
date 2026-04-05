@@ -7,12 +7,12 @@
 		<atom:link href="https://martinemre.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
-				<title>Test</title>
+				<title></title>
 				<description>
 </description>
-				<pubDate>Mon, 02 Feb 2026 00:00:00 +0000</pubDate>
-				<link>https://martinemre.github.io/test/</link>
-				<guid isPermaLink="true">https://martinemre.github.io/test/</guid>
+				<pubDate>Sun, 05 Apr 2026 11:18:52 +0000</pubDate>
+				<link>https://martinemre.github.io/2026-01-01-emre/</link>
+				<guid isPermaLink="true">https://martinemre.github.io/2026-01-01-emre/</guid>
 			</item>
 		
 			<item>
@@ -20,8 +20,17 @@
 				<description>
 </description>
 				<pubDate>Mon, 02 Feb 2026 00:00:00 +0000</pubDate>
-				<link>https://martinemre.github.io/test1/</link>
-				<guid isPermaLink="true">https://martinemre.github.io/test1/</guid>
+				<link>https://martinemre.github.io/azure/test/</link>
+				<guid isPermaLink="true">https://martinemre.github.io/azure/test/</guid>
+			</item>
+		
+			<item>
+				<title>Test</title>
+				<description>
+</description>
+				<pubDate>Mon, 02 Feb 2026 00:00:00 +0000</pubDate>
+				<link>https://martinemre.github.io/azure/test1/</link>
+				<guid isPermaLink="true">https://martinemre.github.io/azure/test1/</guid>
 			</item>
 		
 	</channel>

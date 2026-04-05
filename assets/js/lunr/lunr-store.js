@@ -1,21 +1,27 @@
 var store = [{
         "title": "Test",
-        "excerpt":" ","categories": [],
-        "tags": [],
-        "url": "/test1/",
+        "excerpt":" ","categories": ["Azure"],
+        "tags": ["vnet","networking"],
+        "url": "/azure/test1/",
         "teaser": null
       },{
         "title": "Test",
+        "excerpt":" ","categories": ["Azure"],
+        "tags": ["vnet","networking"],
+        "url": "/azure/test/",
+        "teaser": null
+      },{
+        "title": null,
         "excerpt":" ","categories": [],
-        "tags": [],
-        "url": "/test/",
+        "tags": null,
+        "url": "/2026-01-01-emre/",
         "teaser": null
       },{
     "title": "Page 4",
     "excerpt":"Page 4   h  ","url": "https://martinemre.github.io/group-1/page-3/page-4/README/"
   },{
     "title": "About Me",
-    "excerpt":"Hey There ! 👋   I’m Emre, working as Senior Azure Consultant at Ergo.  Also since 2020, I’ve proudly held the title of Azure Most Valuable Professional (MVP)  I hope you find inspiration and useful insights on this blog as we navigate the vast world of technology together.  Feel free to join the conversation with your questions or share your own experiences 😊      🏆 Some of the Azure certifications I have:          Microsoft Certified: DevOps Engineer Expert     Microsoft Certified: Azure Virtual Desktop Specialty     Microsoft Certified: Azure Security Engineer Associate     Microsoft Certified: Azure Support Engineer for Connectivity Specialty     Microsoft Certified: Azure Network Engineer Associate     Microsoft Certified: Azure Solutions Architect Expert     Microsoft Certified: Azure Administrator Associate     Microsoft Certified: Azure Solutions Architect Expert (Legacy)     Microsoft Certified: Azure Administrator Associate (Legacy)             ","url": "https://martinemre.github.io/aboutme/"
+    "excerpt":"Hey There ! 👋   I’m Emre, working as Senior Azure Consultant at Ergo.  I hope you find inspiration and useful insights on this blog as we navigate the vast world of technology together. Feel free to join the conversation with your questions or share your own experiences 😊   🏆 Some of the Azure certifications I have:          Microsoft Certified: DevOps Engineer Expert     Microsoft Certified: Azure Virtual Desktop Specialty     Microsoft Certified: Azure Security Engineer Associate     Microsoft Certified: Azure Support Engineer for Connectivity Specialty     Microsoft Certified: Azure Network Engineer Associate     Microsoft Certified: Azure Solutions Architect Expert     Microsoft Certified: Azure Administrator Associate     Microsoft Certified: Azure Solutions Architect Expert (Legacy)     Microsoft Certified: Azure Administrator Associate (Legacy)          ","url": "https://martinemre.github.io/aboutme/"
   },{
     "title": "Categories",
     "excerpt":" ","url": "https://martinemre.github.io/categories/"
@@ -24,10 +30,10 @@ var store = [{
     "excerpt":" ","url": "https://martinemre.github.io/categories/"
   },{
     "title": "Posts by Collection",
-    "excerpt":"                          ","url": "https://martinemre.github.io/collection-archive/"
+    "excerpt":"                                  ","url": "https://martinemre.github.io/collection-archive/"
   },{
     "title": null,
-    "excerpt":"  \t \t\tmartinemre \t\t**\t\t \t\thttps://martinemre.github.io \t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/test/ \t\t\t\thttps://martinemre.github.io/test/ \t\t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/test1/ \t\t\t\thttps://martinemre.github.io/test1/ \t\t\t \t\t \t  ","url": "https://martinemre.github.io/feed.xml"
+    "excerpt":"  \t \t\tmartinemre \t\t**\t\t \t\thttps://martinemre.github.io \t\t \t\t \t\t\t \t\t\t\t \t\t\t\t  \t\t\t\tSun, 05 Apr 2026 11:18:52 +0000 \t\t\t\thttps://martinemre.github.io/2026-01-01-emre/ \t\t\t\thttps://martinemre.github.io/2026-01-01-emre/ \t\t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/azure/test/ \t\t\t\thttps://martinemre.github.io/azure/test/ \t\t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/azure/test1/ \t\t\t\thttps://martinemre.github.io/azure/test1/ \t\t\t \t\t \t  ","url": "https://martinemre.github.io/feed.xml"
   },{
     "title": null,
     "excerpt":"","url": "https://martinemre.github.io/"
