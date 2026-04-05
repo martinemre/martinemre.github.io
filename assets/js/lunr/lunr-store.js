@@ -11,9 +11,6 @@ var store = [{
         "url": "/azure/test/",
         "teaser": null
       },{
-    "title": "Page 4",
-    "excerpt":"Page 4   h  ","url": "https://martinemre.github.io/group-1/page-3/page-4/README/"
-  },{
     "title": "About Me",
     "excerpt":"Hey There ! 👋   I’m Emre, working as Senior Azure Consultant at Ergo.  I hope you find inspiration and useful insights on this blog as we navigate the vast world of technology together. Feel free to join the conversation with your questions or share your own experiences 😊   🏆 Some of the Azure certifications I have:          Microsoft Certified: DevOps Engineer Expert     Microsoft Certified: Azure Virtual Desktop Specialty     Microsoft Certified: Azure Security Engineer Associate     Microsoft Certified: Azure Support Engineer for Connectivity Specialty     Microsoft Certified: Azure Network Engineer Associate     Microsoft Certified: Azure Solutions Architect Expert     Microsoft Certified: Azure Administrator Associate     Microsoft Certified: Azure Solutions Architect Expert (Legacy)     Microsoft Certified: Azure Administrator Associate (Legacy)          ","url": "https://martinemre.github.io/aboutme/"
   },{
@@ -41,13 +38,7 @@ var store = [{
     "title": null,
     "excerpt":"var store = [   {%- for c in site.collections -%}     {%- if forloop.last -%}       {%- assign l = true -%}     {%- endif -%}     {%- assign docs = c.docs | where_exp:'doc','doc.search != false' -%}     {%- for doc in docs -%}       {%- if doc.header.teaser -%}         {%- capture teaser -%}{{ doc.header.teaser }}{%- endcapture -%}       {%- else -%}         {%- assign teaser = site.teaser -%}       {%- endif -%}       {         \"title\": {{ doc.title | jsonify }},         \"excerpt\":           {%- if site.search_full_content == true -%}             {{ doc.content | newline_to_br |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \"|             strip_html | strip_newlines | jsonify }},           {%- else -%}             {{ doc.content | newline_to_br |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \" |               replace:\" \", \" \"|             strip_html | strip_newlines | truncatewords: 50 | jsonify }},           {%- endif -%}         \"categories\": {{ doc.categories | jsonify }},         \"tags\": {{ doc.tags | jsonify }},         \"url\": {{ doc.url | relative_url | jsonify }},         \"teaser\": {{ teaser | relative_url | jsonify }}       }{%- unless forloop.last and l -%},{%- endunless -%}     {%- endfor -%}   {%- endfor -%}{%- if site.lunr.search_within_pages -%},   {%- assign pages = site.pages | where_exp:'doc','doc.search != false' -%}   {%- for doc in pages -%}     {%- if forloop.last -%}       {%- assign l = true -%}     {%- endif -%}   {     \"title\": {{ doc.title | jsonify }},     \"excerpt\":         {%- if site.search_full_content == true -%}           {{ doc.content | newline_to_br |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \"|           strip_html | strip_newlines | jsonify }},         {%- else -%}           {{ doc.content | newline_to_br |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \" |             replace:\" \", \" \"|           strip_html | strip_newlines | truncatewords: 50 | jsonify }},         {%- endif -%}       \"url\": {{ doc.url | absolute_url | jsonify }}   }{%- unless forloop.last and l -%},{%- endunless -%}   {%- endfor -%} {%- endif -%}] ","url": "https://martinemre.github.io/assets/js/lunr/lunr-store.js"
   },{
-    "title": "Page 1",
-    "excerpt":"# Page 1  jhfgjfhgjhfgj ","url": "https://martinemre.github.io/group-1/page-3/page-4/page-1/"
-  },{
-    "title": "Page 2",
-    "excerpt":"# Page 2  fjghfjfhgj ","url": "https://martinemre.github.io/group-1/page-3/page-4/page-2/"
-  },{
-    "title": "Etiketler",
+    "title": "Labels",
     "excerpt":"","url": "https://martinemre.github.io/tags/"
   },{
     "title": "Archive",
@@ -57,16 +48,13 @@ var store = [{
     "excerpt":"@import \"jekyll-theme-primer\"; ","url": "https://martinemre.github.io/assets/css/style.css"
   },{
     "title": "Table of contents",
-    "excerpt":"# Table of contents  * [Page](README.md)  ## Group 1  * [Page 3](/group-1/page-3/)   * [Page 4](/group-1/page-3/page-4/README/)     * [Page 2](/group-1/page-3/page-4/page-2/)     * [Page 1](/group-1/page-3/page-4/page-1/)  ***  * [Page 5](/page-5/) ","url": "https://martinemre.github.io/SUMMARY/"
+    "excerpt":"# Table of contents  * [Page](README.md)  ## Group 1  * [Page 3](group-1/page-3/README.md)   * [Page 4](group-1/page-3/page-4/README.md)     * [Page 2](group-1/page-3/page-4/page-2.md)     * [Page 1](group-1/page-3/page-4/page-1.md)  ***  * [Page 5](/page-5/) ","url": "https://martinemre.github.io/SUMMARY/"
   },{
     "title": null,
     "excerpt":" ","url": "https://martinemre.github.io/_pages/"
   },{
     "title": "Page 5",
     "excerpt":"# Page 5  fdsdsfsdfadsf    * fdfdf      fdfdf  fdfdf    > fdfd  *** ","url": "https://martinemre.github.io/page-5/"
-  },{
-    "title": "Page 3",
-    "excerpt":"# Page 3  ","url": "https://martinemre.github.io/group-1/page-3/"
   },{
     "title": null,
     "excerpt":" {% if page.xsl %} {% endif %} {% assign collections = site.collections | where_exp:'collection','collection.output != false' %}{% for collection in collections %}{% assign docs = collection.docs | where_exp:'doc','doc.sitemap != false' %}{% for doc in docs %} {{ doc.url | replace:'/index.html','/' | absolute_url | xml_escape }} {% if doc.last_modified_at or doc.date %}{{ doc.last_modified_at | default: doc.date | date_to_xmlschema }} {% endif %} {% endfor %}{% endfor %}{% assign pages = site.html_pages | where_exp:'doc','doc.sitemap != false' | where_exp:'doc','doc.url != \"/404.html\"' %}{% for page in pages %} {{ page.url | replace:'/index.html','/' | absolute_url | xml_escape }} {% if page.last_modified_at %}{{ page.last_modified_at | date_to_xmlschema }} {% endif %} {% endfor %}{% assign static_files = page.static_files | where_exp:'page','page.sitemap != false' | where_exp:'page','page.name != \"404.html\"' %}{% for file in static_files %} {{ file.path | replace:'/index.html','/' | absolute_url | xml_escape }} {{ file.modified_time | date_to_xmlschema }}  {% endfor %} ","url": "https://martinemre.github.io/sitemap.xml"
