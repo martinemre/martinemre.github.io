@@ -89,3 +89,17 @@ code {
     font-size: 14px;
     opacity: 0.8;
 }
+
+.archive__item-title a {
+    color: #1a1a1a !important;
+    font-weight: 600;
+}
+
+.archive__item-title a:hover {
+    color: #0078d4;
+}
+
+.page {
+    max-width: 1100px;
+    margin: 0 auto;
+}
