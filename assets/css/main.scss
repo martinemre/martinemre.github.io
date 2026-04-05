@@ -13,3 +13,21 @@
 .page__content h2 {
     border-bottom: none;
 }
+
+.page__content a {
+    color: #4f8cff;
+    text-decoration: none;
+}
+
+.page__content a:hover {
+    text-decoration: underline;
+}
+
+.archive__item-title a {
+    color: #222;
+    text-decoration: none;
+}
+
+.archive__item-title a:hover {
+    color: #4f8cff;
+}
