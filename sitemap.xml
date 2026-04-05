@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>https://martinemre.github.io/azure/emre/</loc>
+<lastmod>2026-01-01T00:00:00+00:00</lastmod>
+</url>
+<url>
 <loc>https://martinemre.github.io/azure/test1/</loc>
 <lastmod>2026-02-02T00:00:00+00:00</lastmod>
 </url>
 <url>
 <loc>https://martinemre.github.io/azure/test/</loc>
 <lastmod>2026-02-02T00:00:00+00:00</lastmod>
-</url>
-<url>
-<loc>https://martinemre.github.io/2026-01-01-emre/</loc>
-<lastmod>2026-04-05T11:18:52+00:00</lastmod>
 </url>
 <url>
 <loc>https://martinemre.github.io/group-1/page-3/page-4/README/</loc>
