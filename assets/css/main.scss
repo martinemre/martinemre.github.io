@@ -31,12 +31,12 @@ body {
     border-bottom: none;
 }
 
-/* Title küçült (daha clean) */
+/* Title */
 .page__title {
     font-size: 32px;
 }
 
-/* Links (Microsoft blue) */
+/* Links */
 a {
     color: #0078d4;
     text-decoration: none;
@@ -46,19 +46,30 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Home page post titles */
+/* 🔥 KRİTİK FIX */
 .archive__item-title a {
-    color: #1a1a1a;
-    text-decoration: none;
+    color: #1a1a1a !important;
+    font-weight: 600;
+    text-decoration: none !important;
 }
 
 .archive__item-title a:hover {
-    color: #0078d4;
+    color: #0078d4 !important;
+}
+
+/* Layout */
+.page {
+    max-width: 1100px;
+    margin: 0 auto;
 }
 
 /* Post spacing */
 .archive__item {
     margin-bottom: 2em;
+}
+
+.archive__item-title {
+    font-size: 22px;
 }
 
 /* Code blocks */
@@ -68,7 +79,7 @@ code {
     border-radius: 6px;
 }
 
-/* Notice boxes (Docs style) */
+/* Notice boxes */
 .notice--info {
     background-color: #e6f2fb;
     border-left: 4px solid #0078d4;
@@ -84,26 +95,8 @@ code {
     border-left: 4px solid #bb6568;
 }
 
-/* Sidebar soften */
+/* Sidebar */
 .author__content {
     font-size: 14px;
     opacity: 0.8;
-}
-
-.archive__item-title a {
-    color: #1a1a1a !important;
-    font-weight: 600;
-}
-
-.archive__item-title a:hover {
-    color: #0078d4;
-}
-
-.page {
-    max-width: 1100px;
-    margin: 0 auto;
-}
-
-.archive__item-title {
-    font-size: 22px;
 }
