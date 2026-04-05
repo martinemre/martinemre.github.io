@@ -1,0 +1,16 @@
+--- # Only the main Sass file needs front matter (the dashes are enough) search: false --- @charset "utf-8";
+@import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
+@import "minimal-mistakes"; // main partials
+
+/* 🔥 CUSTOM STYLE OVERRIDE */
+
+.archive__item-title a {
+    color: #f9fafb;
+    /* beyaz - premium look */
+    text-decoration: none;
+}
+
+.archive__item-title a:hover {
+    color: #9ae6b4;
+    /* soft yeşil hover */
+}
