@@ -8,6 +8,12 @@ var store = [{
         "title": "Test",
         "excerpt":" ","categories": ["Azure"],
         "tags": ["vnet","networking"],
+        "url": "/azure/TITLE/",
+        "teaser": null
+      },{
+        "title": "Test",
+        "excerpt":" ","categories": ["Azure"],
+        "tags": ["vnet","networking"],
         "url": "/azure/test/",
         "teaser": null
       },{
@@ -21,10 +27,10 @@ var store = [{
     "excerpt":" ","url": "https://martinemre.github.io/categories/"
   },{
     "title": "Posts by Collection",
-    "excerpt":"                          ","url": "https://martinemre.github.io/collection-archive/"
+    "excerpt":"                                  ","url": "https://martinemre.github.io/collection-archive/"
   },{
     "title": null,
-    "excerpt":"  \t \t\tmartinemre \t\t**\t\t \t\thttps://martinemre.github.io \t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/azure/test/ \t\t\t\thttps://martinemre.github.io/azure/test/ \t\t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/azure/test1/ \t\t\t\thttps://martinemre.github.io/azure/test1/ \t\t\t \t\t \t  ","url": "https://martinemre.github.io/feed.xml"
+    "excerpt":"  \t \t\tmartinemre \t\t**\t\t \t\thttps://martinemre.github.io \t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/azure/test/ \t\t\t\thttps://martinemre.github.io/azure/test/ \t\t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/azure/TITLE/ \t\t\t\thttps://martinemre.github.io/azure/TITLE/ \t\t\t \t\t \t\t\t \t\t\t\tTest \t\t\t\t  \t\t\t\tMon, 02 Feb 2026 00:00:00 +0000 \t\t\t\thttps://martinemre.github.io/azure/test1/ \t\t\t\thttps://martinemre.github.io/azure/test1/ \t\t\t \t\t \t  ","url": "https://martinemre.github.io/feed.xml"
   },{
     "title": null,
     "excerpt":"","url": "https://martinemre.github.io/"
