@@ -1,7 +1,7 @@
 var store = [{
         "title": "Test",
         "excerpt":" ","categories": ["Azure"],
-        "tags": ["vnet","networking"],
+        "tags": ["vnet1","networking"],
         "url": "/azure/test1/",
         "teaser": null
       },{
