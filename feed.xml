@@ -8,11 +8,9 @@
 		
 			<item>
 				<title>Azure Firewall : From Incremental Updates to Atomic Policy Deployment</title>
-				<description>&lt;h1 id=&quot;azure-firewall--from-incremental-updates-to-atomic-policy-deployment&quot;&gt;Azure Firewall : From Incremental Updates to Atomic Policy Deployment&lt;/h1&gt;
+				<description>&lt;p&gt;Azure Firewall’s Draft &amp;amp; Deploy feature was in preview for quite a while, but it finally went Generally Available in March 2026.&lt;/p&gt;
 
-&lt;p&gt;Azure Firewall’s Draft &amp;amp; Deploy feature was in preview for quite a while, but it finally went Generally Available in March 2026.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-is-draft--deploy-and-why-should-you-care&quot;&gt;What is Draft + Deploy, and why should you care?&lt;/h2&gt;
+&lt;h2 id=&quot;what-is-azure-firewall-draft--deploy-and-why-should-you-care&quot;&gt;What is Azure Firewall Draft + Deploy, and why should you care?&lt;/h2&gt;
 
 &lt;p&gt;From a price-performance perspective, Azure Firewall can be considered a very capable product. However, when it comes to managing firewall rules especially performing bulk changes via the Azure Portal it has been quite challenging.&lt;/p&gt;
 
