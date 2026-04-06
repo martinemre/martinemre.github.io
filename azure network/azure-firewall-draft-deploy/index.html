@@ -104,7 +104,7 @@
   
 
 
-    <meta timestamp="2026-04-06 20:56" />
+    <meta timestamp="2026-04-06 20:59" />
 <!-- start custom head snippets -->
 
 <!-- insert favicons. use https://realfavicongenerator.net/  -->
@@ -120,7 +120,7 @@
 <!-- end custom head snippets -->
 
 <!-- Custom CSS Override -->
-<link rel="stylesheet" href="/assets/css/custom.css?v=1775505459">
+<link rel="stylesheet" href="/assets/css/custom.css?v=1775505657">
 
 <style>
     /* ===================================
@@ -137,10 +137,8 @@
         color: #3498db !important;
     }
 
-    /* HOVER KIRMIZI DEĞİL MAVİ */
     a:hover {
         color: #2980b9 !important;
-        /* Koyu mavi */
     }
 
     h1,
@@ -166,14 +164,29 @@
         margin-left: 1rem !important;
     }
 
-    /* MENÜ HOVER MAVİ */
     .greedy-nav a:hover {
         color: #3498db !important;
     }
 
-    /* Aktif sayfa alt çizgisi de mavi */
+    /* AKTİF MENÜ ÇİZGİSİ - MAVİ */
+    .greedy-nav a.active,
+    .visible-links a.active {
+        color: #3498db !important;
+    }
+
+    /* ALT ÇİZGİ KIRMIZI OLMASIN - MAVİ */
+    .greedy-nav .visible-links a::before,
     .greedy-nav .visible-links a::after {
         background: #3498db !important;
+    }
+
+    /* ARAMA İKONU - MAVİ */
+    .search__toggle {
+        color: #3498db !important;
+    }
+
+    .search__toggle:hover {
+        color: #2980b9 !important;
     }
 
     /* ===================================
@@ -207,7 +220,6 @@
 
     .archive__item-title a:hover {
         color: #3498db !important;
-        /* MAVİ hover */
     }
 
     /* ===================================
@@ -224,7 +236,6 @@
 
     .page__footer a:hover {
         color: #5dade2 !important;
-        /* Açık mavi hover */
     }
 </style>
   </head>
