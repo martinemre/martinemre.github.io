@@ -123,7 +123,7 @@
 <!-- end custom head snippets -->
 
 <!-- Custom CSS Override -->
-<link rel="stylesheet" href="/assets/css/custom.css?v=1775555460">
+<link rel="stylesheet" href="/assets/css/custom.css?v=1775558014">
 
 <style>
     /* ===================================
@@ -273,11 +273,6 @@
         /* MAX-WIDTH KALDIR */
     }
 
-    /* BAŞLIK - KOYU MAVİ */
-    .archive__item-title {
-        margin: 0 0 0.5rem 0 !important;
-    }
-
     .archive__item-title a {
         color: #1a5276 !important;
         font-family: 'Roboto Slab', Georgia, serif !important;
@@ -355,12 +350,8 @@
     /* BAŞLIK - TEK SATIR (nowrap) */
     .archive__item-title {
         margin: 0 0 0.5rem 0 !important;
-        white-space: nowrap !important;
-        /* TEK SATIR */
-        overflow: hidden !important;
-        /* Taşanı gizle */
-        text-overflow: ellipsis !important;
-        /* ... ekle */
+        white-space: normal !important;
+        word-break: break-word;
     }
 
     .archive__item-title a {
