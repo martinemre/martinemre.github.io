@@ -119,7 +119,7 @@
 <!-- end custom head snippets -->
 
 <!-- Custom CSS Override -->
-<link rel="stylesheet" href="/assets/css/custom.css?v=1775593734">
+<link rel="stylesheet" href="/assets/css/custom.css?v=1775593881">
 
 <style>
     /* ===================================
@@ -376,28 +376,26 @@
     }
 
     /* ===================================
-   POST İÇİ BAŞLIK VE META - SIFIR BOŞLUK
+   POST İÇİ BAŞLIK - MARGIN SIFIR
    =================================== */
 
-    /* En spesifik selector - h1 margin sıfır */
-    .page__header h1.page__title,
-    article header h1,
-    .page h-entry header h1 {
+    /* Tüm margin değerlerini sıfırla */
+    h1.page__title,
+    .page__title,
+    #post-title {
         margin: 0 !important;
+        margin-block-start: 0 !important;
+        margin-block-end: 0 !important;
+        margin-bottom: 0 !important;
         padding: 0 !important;
         line-height: 1.2 !important;
     }
 
-    /* 2 minute read - üst boşluk minimal */
-    .page__header p.page__meta,
-    header .page__meta {
+    /* 2 minute read */
+    p.page__meta {
         margin: 0.25rem 0 0 0 !important;
-        padding: 0 !important;
-    }
-
-    /* H1 ile meta arasındaki boşluk */
-    .page__title+p.page__meta {
-        margin-top: 0.25rem !important;
+        margin-block-start: 0.25rem !important;
+        margin-block-end: 0 !important;
     }
 </style>
   </head>
