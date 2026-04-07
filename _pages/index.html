@@ -100,7 +100,7 @@
   
 
 
-    <meta timestamp="2026-04-07 09:43" />
+    <meta timestamp="2026-04-07 09:48" />
 <!-- start custom head snippets -->
 
 <!-- insert favicons. use https://realfavicongenerator.net/  -->
@@ -121,7 +121,7 @@
 <!-- end custom head snippets -->
 
 <!-- Custom CSS Override -->
-<link rel="stylesheet" href="/assets/css/custom.css?v=1775551533">
+<link rel="stylesheet" href="/assets/css/custom.css?v=1775551983">
 
 <style>
     /* ===================================
@@ -151,7 +151,7 @@
     }
 
     /* ===================================
-       ÜST MENÜ - GRİ RENK + İNCE ALT ÇİZGİ
+       ÜST MENÜ - GRİ RENK + TEK İNCE ALT ÇİZGİ
        =================================== */
     .masthead {
         background-color: #ffffff !important;
@@ -174,12 +174,21 @@
         color: #3498db !important;
     }
 
-    /* ALT ÇİZGİ İNCE (2px -> 1px) */
-    .greedy-nav .visible-links a::before,
-    .greedy-nav .visible-links a::after {
+    /* TEK ÇİZGİ - ::after KALDIR, ::before KULLAN */
+    .greedy-nav .visible-links a::before {
         background: #3498db !important;
         height: 1px !important;
-        /* İNCE */
+        transform: scaleX(0) !important;
+        transition: transform 0.2s ease !important;
+    }
+
+    .greedy-nav .visible-links a:hover::before,
+    .greedy-nav .visible-links a.active::before {
+        transform: scaleX(1) !important;
+    }
+
+    .greedy-nav .visible-links a::after {
+        display: none !important;
     }
 
     .search__toggle {
@@ -204,7 +213,6 @@
        =================================== */
     .author__name {
         color: #1a5276 !important;
-        /* KOYU MAVİ - post başlıklarıyla aynı */
         font-weight: 600 !important;
         font-size: 1.25rem !important;
     }
@@ -221,7 +229,6 @@
         color: #555 !important;
     }
 
-    /* Azure kelimesi */
     .author__bio strong,
     .author__bio b {
         color: #1a5276 !important;
@@ -260,7 +267,7 @@
         padding: 1.5rem !important;
     }
 
-    /* BAŞLIK - KOYU MAVİ */
+    /* BAŞLIK - KOYU MAVİ + 1 TIK KÜÇÜK (1.2rem) */
     .archive__item-title {
         margin: 0 0 0.5rem 0 !important;
     }
@@ -269,7 +276,7 @@
         color: #1a5276 !important;
         font-family: 'Roboto Slab', Georgia, serif !important;
         font-weight: 600 !important;
-        font-size: 1.3rem !important;
+        font-size: 1.2rem !important;
         line-height: 1.3 !important;
         text-decoration: none !important;
     }
@@ -293,11 +300,18 @@
         font-size: 0.7rem !important;
     }
 
-    /* Meta bilgiler */
-    .page__meta {
+    /* READ TIME (2 min read) - 1 TIK KÜÇÜK (0.8rem) */
+    .page__meta,
+    .archive__item-meta {
         color: #777 !important;
-        font-size: 0.85rem !important;
+        font-size: 0.7rem !important;
+        /* 0.85rem -> 0.8rem KÜÇÜLDÜ */
         margin: 0 !important;
+    }
+
+    .page__meta i,
+    .archive__item-meta i {
+        font-size: 0.8rem !important;
     }
 
     /* ===================================
