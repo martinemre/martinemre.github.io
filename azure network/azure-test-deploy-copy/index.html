@@ -104,7 +104,7 @@
   
 
 
-    <meta timestamp="2026-04-07 09:48" />
+    <meta timestamp="2026-04-07 09:58" />
 <!-- start custom head snippets -->
 
 <!-- insert favicons. use https://realfavicongenerator.net/  -->
@@ -125,7 +125,7 @@
 <!-- end custom head snippets -->
 
 <!-- Custom CSS Override -->
-<link rel="stylesheet" href="/assets/css/custom.css?v=1775551983">
+<link rel="stylesheet" href="/assets/css/custom.css?v=1775552903">
 
 <style>
     /* ===================================
@@ -178,7 +178,7 @@
         color: #3498db !important;
     }
 
-    /* TEK ÇİZGİ - ::after KALDIR, ::before KULLAN */
+    /* TEK ÇİZGİ */
     .greedy-nav .visible-links a::before {
         background: #3498db !important;
         height: 1px !important;
@@ -203,7 +203,6 @@
         color: #3498db !important;
     }
 
-    /* Site başlığı */
     .site-title {
         color: #2c3e50 !important;
     }
@@ -253,7 +252,6 @@
         color: #555 !important;
     }
 
-    /* PROFİL FOTOĞRAFI - İNCE ÇERÇEVE */
     .author__avatar img {
         border: 2px solid #3498db !important;
         padding: 2px !important;
@@ -271,7 +269,7 @@
         padding: 1.5rem !important;
     }
 
-    /* BAŞLIK - KOYU MAVİ + 1 TIK KÜÇÜK (1.2rem) */
+    /* BAŞLIK - KOYU MAVİ + KÜÇÜK (1.2rem) */
     .archive__item-title {
         margin: 0 0 0.5rem 0 !important;
     }
@@ -290,7 +288,7 @@
         text-decoration: underline !important;
     }
 
-    /* EXCERPT - KÜÇÜK FONT */
+    /* EXCERPT - ANA KAPSAYICI */
     .archive__item-excerpt {
         color: #555 !important;
         font-size: 0.7rem !important;
@@ -298,39 +296,30 @@
         margin: 0.5rem 0 0.75rem 0 !important;
     }
 
+    /* EXCERPT - İÇİNDEKİ p ETİKETİ */
     .archive__item-excerpt p {
         color: #555 !important;
-        margin: 0 !important;
         font-size: 0.7rem !important;
+        margin: 0 !important;
     }
 
-    /* READ TIME (2 min read) - 1 TIK KÜÇÜK (0.8rem) */
+    /* READ TIME (2 min read) - KÜÇÜK (0.8rem) */
     .page__meta,
-    .archive__item-meta {
+    .page__meta i {
         color: #777 !important;
-        font-size: 0.7rem !important;
-        /* 0.85rem -> 0.8rem KÜÇÜLDÜ */
-        margin: 0 !important;
-    }
-
-    .page__meta i,
-    .archive__item-meta i {
         font-size: 0.8rem !important;
+        margin: 0 !important;
     }
 
     /* ===================================
-       FOOTER - BEYAZ LINKLER
+       FOOTER - BEYAZ LINKLER + RSS İKONU
        =================================== */
     .page__footer {
         background-color: #2c3e50 !important;
         color: #ecf0f1 !important;
     }
 
-    .page__footer a,
-    .page__footer .fa,
-    .page__footer .fas,
-    .page__footer .fab,
-    .page__footer .social-icons a {
+    .page__footer a {
         color: #ffffff !important;
         font-weight: 500 !important;
     }
@@ -339,9 +328,47 @@
         color: #5dade2 !important;
     }
 
+    /* FOOTER İKONLARI - BEYAZ */
+    .page__footer .fa,
+    .page__footer .fas,
+    .page__footer .fab,
+    .page__footer .svg-inline--fa {
+        color: #ffffff !important;
+    }
+
+    /* RSS/FEED İKONU ÖZEL */
+    .page__footer .fa-rss,
+    .page__footer .fa-rss-square,
+    .page__footer .fa-feed,
+    .page__footer .fas.fa-rss,
+    .page__footer .fas.fa-rss-square,
+    .page__footer .fas.fa-feed {
+        color: #ffffff !important;
+        margin-right: 0.3rem !important;
+    }
+
+    /* SOCIAL ICONS KAPSAYICI */
+    .page__footer .social-icons a {
+        color: #ffffff !important;
+    }
+
+    .page__footer .social-icons .fa,
+    .page__footer .social-icons .fas,
+    .page__footer .social-icons .fab {
+        color: #ffffff !important;
+    }
+
     .page__footer-copyright {
         font-weight: 400 !important;
         color: #95a5a6 !important;
+    }
+
+    .page__footer-copyright a {
+        color: #95a5a6 !important;
+    }
+
+    .page__footer-copyright a:hover {
+        color: #ffffff !important;
     }
 </style>
   </head>
@@ -674,7 +701,7 @@
       <a href="#" class="pagination--pager disabled">Previous</a>
     
     
-      <a href="/azure%20network/azure-firewall-draft-deploy/" class="pagination--pager" title="Azure Firewall : From Incremental Updates to Atomic Policy Deployment
+      <a href="/azure%20network/test-deploy/" class="pagination--pager" title="Azure Firewall : From Incremental Updates to Atomic Policy Deployment
 ">Next</a>
     
   </nav>
@@ -747,6 +774,52 @@
   </article>
 </div>
       
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+      <a href="/azure%20network/test-deploy/" rel="permalink">Azure Firewall : From Incremental Updates to Atomic Policy Deployment
+</a>
+      
+    </h2>
+
+    <!-- EXCERPT BURAYA EKLENDİ -->
+    
+    <p class="archive__item-excerpt" itemprop="description">
+      What is Azure Firewall Draft + Deploy ?
+
+    </p>
+    
+
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          2 minute read
+        
+      </span>
+    
+  </p>
+
+
+  </article>
+</div>
+      
     </div>
   </div>
   
@@ -778,15 +851,11 @@
         
       
         
-      
-        
-          <li><a href="https://martinemre.github.io/" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-github" aria-hidden="true"></i> GitHub</a></li>
+          <li><a href="https://github.com/martinemre" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-github" aria-hidden="true"></i> GitHub</a></li>
         
       
         
-      
-        
-      
+          <li><a href="/feed.xml" rel="nofollow noopener noreferrer"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
         
       
     

@@ -88,6 +88,49 @@
 &lt;p&gt;&lt;img src=&quot;/assets/images/azurefirewall/azurefirewalldraftdeploy.png&quot; alt=&quot;Deploy&quot; /&gt;&lt;/p&gt;
 </description>
 				<pubDate>Tue, 03 Mar 2026 00:00:00 +0000</pubDate>
+				<link>https://martinemre.github.io/azure%20network/test-deploy/</link>
+				<guid isPermaLink="true">https://martinemre.github.io/azure%20network/test-deploy/</guid>
+			</item>
+		
+			<item>
+				<title>Azure Firewall : From Incremental Updates to Atomic Policy Deployment</title>
+				<description>&lt;p&gt;Azure Firewall’s Draft &amp;amp; Deploy feature was in preview for quite a while, but it finally went Generally Available in March 2026.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-azure-firewall-draft--deploy-and-why-should-you-care&quot;&gt;What is Azure Firewall Draft + Deploy, and why should you care?&lt;/h2&gt;
+
+&lt;p&gt;From a price-performance perspective, Azure Firewall can be considered a very capable product. However, when it comes to managing firewall rules especially performing bulk changes via the Azure Portal it has been quite challenging.&lt;/p&gt;
+
+&lt;p&gt;If you’ve ever tried to make bulk changes through the Azure Portal, you know what I mean. The problem was simple: every rule change had to be applied one by one. You’d change something, wait for it to finish, then move to the next. Incremental updates. Super slow, and honestly risky if you had a lot of changes to make.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-changed-with-azure-firewall-draft--deploy&quot;&gt;What changed with Azure Firewall Draft &amp;amp; Deploy?&lt;/h2&gt;
+
+&lt;p&gt;Draft + Deploy fixes this by giving you a proper workflow. Instead of pushing changes live immediately, you now work in a draft first. Think of it as a sandbox where you can pile up all your rule changes - add new ones, update existing ones, whatever you need to do.&lt;/p&gt;
+
+&lt;p&gt;The draft starts from a snapshot of your current Firewall Policy, And here’s the useful part multiple teams can collaborate on the same draft at the same time. Your network team adds some rules, security team reviews them, all in parallel.&lt;/p&gt;
+
+&lt;p&gt;Nothing touches production until you explicitly hit publish. The draft is completely isolated, so you can break things, fix them, change your mind, no stress 😊 Once everyone’s happy, you publish everything in one go.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-to-create-a-draft&quot;&gt;How to create a Draft?&lt;/h2&gt;
+
+&lt;p&gt;To create a draft, follow these steps: Firewall Policy → Draft + Deploy → Draft&lt;/p&gt;
+
+&lt;p&gt;Using this path, you can create a draft based on the current policy and start making your changes in an isolated environment.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/azurefirewall/azurefirewall.png&quot; alt=&quot;Firewall&quot; /&gt;&lt;/p&gt;
+
+&lt;p class=&quot;notice--warning&quot;&gt;&lt;strong&gt;Heads up:&lt;/strong&gt; After a draft is created, any direct changes made to the production policy will be overwritten during deployment. This means that if someone modifies live rules while you are working on the draft, those changes will be lost without notice.&lt;/p&gt;
+
+&lt;p&gt;After the draft is created, you can make any changes you need on it.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/azurefirewall/azurefirewalldraft.png&quot; alt=&quot;Draft&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;deployment-process&quot;&gt;Deployment Process&lt;/h2&gt;
+
+&lt;p&gt;After completing all the required changes on the draft, you can review the newly added or modified rules, identify potential misconfigurations in advance, and reduce the risk of service interruptions. Once the deploy action is triggered, the existing policy is updated in a single operation using the content of the draft you prepared and reviewed.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/azurefirewall/azurefirewalldraftdeploy.png&quot; alt=&quot;Deploy&quot; /&gt;&lt;/p&gt;
+</description>
+				<pubDate>Tue, 03 Mar 2026 00:00:00 +0000</pubDate>
 				<link>https://martinemre.github.io/azure%20network/azure-test-deploy-copy/</link>
 				<guid isPermaLink="true">https://martinemre.github.io/azure%20network/azure-test-deploy-copy/</guid>
 			</item>
