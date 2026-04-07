@@ -123,7 +123,7 @@
 <!-- end custom head snippets -->
 
 <!-- Custom CSS Override -->
-<link rel="stylesheet" href="/assets/css/custom.css?v=1775572266">
+<link rel="stylesheet" href="/assets/css/custom.css?v=1775572517">
 
 <style>
     /* ===================================
@@ -390,23 +390,28 @@
     }
 
     /* ===================================
-   POST İÇİ BAŞLIK VE META BOŞLUK
+   POST İÇİ BAŞLIK VE META BOŞLUK - GÜÇLENDİRİLMİŞ
    =================================== */
 
-    /* Post içindeki başlık altı boşluk */
+    /* Post sayfası başlığı - en spesifik */
+    .page__header h1.page__title,
     .page__header .page__title {
-        margin-bottom: 1.5rem !important;
+        margin-bottom: 2rem !important;
+        margin-top: 0 !important;
     }
 
-    /* Post içindeki "2 minute read" üst boşluk */
-    .page__header .page__meta {
-        margin-top: 1rem !important;
-        margin-bottom: 1 !important;
+    /* 2 minute read - üst boşluk */
+    .page__header .page__meta,
+    .page__header .page__meta span,
+    .page__header .page__meta i {
+        margin-top: 1.5rem !important;
+        margin-bottom: 0 !important;
         display: block !important;
     }
 
-    body {
-        font-family: system-ui, -apple-system, sans-serif !important;
+    /* Alternatif: direkt parent */
+    .page__header>.page__meta:first-of-type {
+        margin-top: 2rem !important;
     }
 </style>
   </head>
