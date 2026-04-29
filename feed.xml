@@ -7,6 +7,158 @@
 		<atom:link href="https://martinemre.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>Terraform State: The Silent Source of Truth</title>
+				<description>&lt;h2 id=&quot;what-is-statefile-&quot;&gt;What is StateFile ?&lt;/h2&gt;
+
+&lt;p&gt;Terraform works in a declarative way. You don’t tell it how to do something — you tell it what you want. Terraform then figures out the steps to get there. Say you want to create a VNET. Instead of writing commands one by one, you just define the structure you need. Terraform analyzes the current state and handles the create, update, or delete operations itself.&lt;/p&gt;
+
+&lt;p&gt;This is where the Terraform state file comes in. To understand what’s already there, Terraform needs a record of the resources it has created and managed. That record is usually stored in a file called terraform.tfstate. I say “usually” because  as we’ll get into shortly there are several different ways to store state files.&lt;/p&gt;
+
+&lt;p&gt;Before any deployment, Terraform compares two things. First, your .tf files: what you want. Second, your .tfstate file: what’s actually out there right now. If these don’t match, Terraform plans the changes.&lt;/p&gt;
+
+&lt;p&gt;Thanks to the state file, Terraform knows which resources were created earlier, what needs changing, and what should be updated, destroyed, or rebuilt. Inside the state file, you’ll find the version number, Terraform version, how many times apply has run (serial), module outputs, resource details, and metadata about deployed resources. So it’s not just a list of what got created — it holds every reference Terraform needs to manage that environment.&lt;/p&gt;
+
+&lt;p&gt;Here’s what a simple state file looks like:&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;version&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;terraform_version&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;1.5.0&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;serial&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;lineage&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;1234-abcd-5678-efgh&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;outputs&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s2&quot;&gt;&quot;rg_name&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;s2&quot;&gt;&quot;value&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;rg-test&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;s2&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;string&quot;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;resources&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;s2&quot;&gt;&quot;mode&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;managed&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;s2&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;azurerm_resource_group&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;s2&quot;&gt;&quot;name&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;rg&quot;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;local-or-remote&quot;&gt;Local or Remote?&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Local State:&lt;/strong&gt; By default, Terraform stores the state file as terraform.tfstate in the directory where you run terraform apply. Keeping state locally is fine if you’re working solo on small experiments, but lose or corrupt that file and you’re in trouble. It’s also a non-starter for team collaboration or CI/CD pipelines.
+Where and how the state file is stored is determined by the backend configuration, typically defined in a backend.tf file.&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;terraform&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;backend&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;azurerm&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;resource_group_name&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;rg-tfstate&quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;storage_account_name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;stterraformprod&quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;container_name&lt;/span&gt;       &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;tfstate&quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;key&lt;/span&gt;                  &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;prod.terraform.tfstate&quot;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Azure Storage:&lt;/strong&gt; Storing state files in Azure Storage gives you centralized control and works well for teams and CI/CD. It supports state locking, you can use RBAC, and access becomes much more manageable. The trade-off is extra setup work. If you’re using Microsoft-hosted agents, your storage account needs to be publicly accessible — which may not fly with your security team. In that case, look at DevOps Managed Pools or self-hosted runners instead.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Terraform Cloud:&lt;/strong&gt; Terraform Cloud is HashiCorp’s own platform. Beyond state management, it handles pipelines too. You get a UI for variable management, state locking, version history, and run history — plus multi-cloud support out of the box.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Other Options:&lt;/strong&gt; Depending on your cloud environment, state files can also live in AWS S3, Google Cloud Storage, or in niche cases, Kubernetes Secrets.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-happens-when-you-delete-the-state-file&quot;&gt;What Happens When You Delete the State File?&lt;/h2&gt;
+
+&lt;p&gt;If the state file goes missing, Terraform acts like nothing exists in your environment. That’s because Terraform relies on this file to know what it built in the first place. So it tries to recreate everything. Depending on the resource type, you might hit duplicate resource errors, naming conflicts, or end up rebuilding things that were perfectly fine. In production, losing your state file is a serious operational risk.&lt;/p&gt;
+
+&lt;p&gt;If it happens, you generally have two options:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;em&gt;Got a backup?&lt;/em&gt; Restore the state file.&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;No backup?&lt;/em&gt; Pull existing resources back into state using terraform import.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;That same import approach works when you want Terraform to take over resources that were created manually.&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;terraform&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;RESOURCE_ADDRESS&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;RESOURCE_ID&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;terraform&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;azurerm_resource_group&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;rg&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;subscriptions&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;xxx&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;resourceGroups&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;rg&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;test&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;state-and-config-mismatch&quot;&gt;State and Config Mismatch&lt;/h2&gt;
+
+&lt;p&gt;We mentioned that Terraform looks at the state file to decide what was created before, what needs changing, and what to update, destroy, or rebuild.
+But when someone deletes, modifies, or updates a Terraform-managed resource manually — through the portal, CLI, or whatever — state and config fall out of sync. Terraform’s view of the world no longer matches reality.
+Say you create a security rule on an NSG through Terraform. Later, someone tweaks that rule or deletes it entirely. That’s what we call resource drift.
+At this point, you have two choices:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Override: Run terraform apply to wipe out the manual change and bring infrastructure back in line with code.&lt;/li&gt;
+  &lt;li&gt;Accept: Update Terraform state to reflect what’s actually out there.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To update state, you’ll typically use:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;terraform import&lt;/strong&gt;: Brings an existing resource under Terraform management. Basically says, “this thing is yours now.” Useful when you want Terraform to adopt manually created resources.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;terraform state rm&lt;/strong&gt;: Removes a resource from state only. Doesn’t touch the actual resource — just tells Terraform to stop managing it. Handy when a resource needs to be handled manually going forward.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Handling Expected Drift&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Some resources have settings managed by the platform itself or by other teams. For example, you deploy an App Service, then your dev team updates app_settings during their release (release version, feature flags, environment variables, etc.). Terraform sees this as drift because state no longer matches reality. If you don’t want to fight these small, intentional changes every time, use lifecycle blocks in your module to ignore specific field:&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;lifecycle&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;ignore_changes&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;app_settings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;connection_string&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;sticky_settings&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;virtual_network_subnet_id&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;This way Terraform deliberately ignores changes in those fields and stops generating pointless update plans.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Drift Check?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Drift check is simply asking: does what’s in my state file still match what’s actually out there?
+The quickest way to find out is terraform plan. It compares state against reality through the provider and shows you any gaps.
+For a cleaner, safer check, most people prefer:&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;terraform&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;plan&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;refresh&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;only&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This command is read-only — it won’t create, destroy, or modify anything. It just reports differences between state and the real environment. Much safer for production drift detection.&lt;/p&gt;
+
+&lt;p&gt;You can wire this into a pipeline and schedule it to run every night. If drift shows up, trigger an alert, email, or Teams notification. This approach is pretty standard in enterprise environments for keeping governance and visibility tight.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/terraform/terraform-statefile.png&quot; alt=&quot;Firewall&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;does-state-file-size-matter&quot;&gt;Does State File Size Matter?&lt;/h2&gt;
+
+&lt;p&gt;State files grow over time based on how many resources you have, how detailed their attributes are, and what metadata gets added on each apply. Small projects might see files in the KB range. Large environments can hit tens of megabytes.
+As the file gets bigger, terraform plan and terraform apply slow down. With remote backends, you’re also paying the cost of download and upload time. You might not notice this in a small setup, but once you’re managing 10,000+ resources, it becomes a real performance hit and keeps state locks held longer.
+Here’s how to keep things lean:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;1. Split Your Resources:&lt;/strong&gt; Use separate state files for different layers — Network, Compute, Data, whatever makes sense for your architecture. This keeps individual states smaller and easier to work with.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;2. Reference, Don’t Copy:&lt;/strong&gt; Instead of duplicating large state files, use terraform_remote_state or data sources to pull in what you need from other states.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;3. Prefer Native Providers:&lt;/strong&gt; Native resources like azurerm_subnet keep state cleaner than catch-all tools like azapi_resource. Less noise, more maintainable.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;4. Avoid Bloated Attributes:&lt;/strong&gt; Some platform services — Web Apps, Function Apps, and the like — dump massive config blocks into state. Be selective about what you track.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;5. Clean Up Old Versions:&lt;/strong&gt; Versioned backends can accumulate historical copies that just add operational clutter. Prune them.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Checking File Size&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Local:&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;ls&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;lh&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;terraform&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;tfstate&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Remote (Terraform Cloud, etc.):&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;$size&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;terraform&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;pull&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Measure&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Character&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Characters&lt;/span&gt;
+&lt;span class=&quot;s2&quot;&gt;&quot;$([math]::Round($size/1KB, 2)) KB&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+</description>
+				<pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate>
+				<link>https://martinemre.github.io/azure%20devops/terraform-statefile/</link>
+				<guid isPermaLink="true">https://martinemre.github.io/azure%20devops/terraform-statefile/</guid>
+			</item>
+		
+			<item>
 				<title>Azure Firewall Prescaling: Preventing Black Friday Spikes Before Autoscale Reacts</title>
 				<description>&lt;h2 id=&quot;understanding-azure-firewall-autoscaling&quot;&gt;Understanding Azure Firewall Autoscaling&lt;/h2&gt;
 
