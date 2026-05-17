@@ -1,0 +1,1260 @@
+<!doctype html>
+<!--
+  Minimal Mistakes Jekyll Theme 4.24.0 by Michael Rose
+  Copyright 2013-2020 Michael Rose - mademistakes.com | @mmistakes
+  Free for personal and commercial use under the MIT license
+  https://github.com/mmistakes/minimal-mistakes/blob/master/LICENSE
+-->
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8">
+
+<!-- begin _includes/seo.html --><title>Azure SQL Database Migration Between Tenants with Azure DevOps Pipeline - All About Azure</title>
+<meta name="description" content="Learn how to automate Azure SQL database migration between tenants using Azure DevOps.">
+
+
+  <meta name="author" content="Emre Martin">
+  
+  <meta property="article:author" content="Emre Martin">
+  
+
+
+<meta property="og:type" content="article">
+<meta property="og:locale" content="en_IE">
+<meta property="og:site_name" content="All About Azure">
+<meta property="og:title" content="Azure SQL Database Migration Between Tenants with Azure DevOps Pipeline">
+<meta property="og:url" content="https://martinemre.github.io/azure%20devops/azure-sql-migraiton-pipeline/">
+
+
+  <meta property="og:description" content="Learn how to automate Azure SQL database migration between tenants using Azure DevOps.">
+
+
+
+
+
+  <meta name="twitter:site" content="@username">
+  <meta name="twitter:title" content="Azure SQL Database Migration Between Tenants with Azure DevOps Pipeline">
+  <meta name="twitter:description" content="Learn how to automate Azure SQL database migration between tenants using Azure DevOps.">
+  <meta name="twitter:url" content="https://martinemre.github.io/azure%20devops/azure-sql-migraiton-pipeline/">
+
+  
+    <meta name="twitter:card" content="summary">
+    
+  
+
+  
+
+
+
+  <meta property="article:published_time" content="2026-05-16T00:00:00+00:00">
+
+
+
+
+
+  
+
+  
+
+
+<link rel="canonical" href="https://martinemre.github.io/azure%20devops/azure-sql-migraiton-pipeline/">
+
+
+
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    
+      "@type": "Person",
+      "name": "martinemre",
+      "url": "https://martinemre.github.io/"
+    
+  }
+</script>
+
+
+
+
+
+
+
+<!-- end _includes/seo.html -->
+
+
+
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5/css/all.min.css"></noscript>
+
+
+  
+    <script src="/assets/css/custom.css"></script>
+  
+
+
+    <meta timestamp="2026-04-07 10:18" />
+<!-- start custom head snippets -->
+
+<!-- insert favicons. use https://realfavicongenerator.net/  -->
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicon-16x16.png">
+<link rel="manifest" href="/assets/images/site.webmanifest">
+<link rel="shortcut icon" href="/assets/images/favicon.ico">
+<link rel="mask-icon" href="/assets/images/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="theme-color" content="#ffffff">
+
+<!-- GOOGLE FONTS - ROBOTO SLAB -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- end custom head snippets -->
+
+<!-- Custom CSS Override -->
+<link rel="stylesheet" href="/assets/css/custom.css?v=1779038244">
+
+<style>
+    /* ===================================
+       GENEL RENKLER
+       =================================== */
+    body {
+        background-color: #f0f3f5 !important;
+        color: #494e52 !important;
+    }
+
+    a {
+        color: #1a5276 !important;
+    }
+
+    a:hover {
+        color: #1a5276 !important;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: #2c3e50 !important;
+        font-weight: 600 !important;
+    }
+
+    /* ===================================
+       ÜST MENÜ
+       =================================== */
+    .masthead {
+        background-color: #ffffff !important;
+        border-bottom: none !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .site-title {
+        color: #2c3e50 !important;
+        font-size: 1.35rem !important;
+        font-weight: 600 !important;
+    }
+
+    .site-subtitle {
+        color: #555 !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* All About Azure üzerine gelince gizlensin */
+    .site-title:hover~.site-subtitle,
+    .site-title-wrapper:hover .site-subtitle {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        transition: opacity 0.2s ease !important;
+    }
+
+    .greedy-nav a {
+        color: #494e52 !important;
+        font-weight: 500 !important;
+        font-size: 0.95rem !important;
+        margin-left: 1rem !important;
+    }
+
+    .greedy-nav a:hover {
+        color: #494e52 !important;
+    }
+
+    .greedy-nav a.active {
+        color: #494e52 !important;
+    }
+
+    .greedy-nav .visible-links a::before {
+        display: none !important;
+    }
+
+    .greedy-nav .visible-links a:hover::before,
+    .greedy-nav .visible-links a.active::before {
+        transform: scaleX(1) !important;
+    }
+
+    .greedy-nav .visible-links a::after {
+        display: none !important;
+    }
+
+    .search__toggle {
+        color: #555 !important;
+    }
+
+    .search__toggle:hover {
+        color: #555 !important;
+    }
+
+    /* ===================================
+       SIDEBAR
+       =================================== */
+    .author__name {
+        color: #1a5276 !important;
+        font-weight: 600 !important;
+        font-size: 1.25rem !important;
+    }
+
+    .author__name a {
+        color: #1a5276 !important;
+    }
+
+    .author__name a:hover {
+        color: #1a5276 !important;
+    }
+
+    .author__bio {
+        color: #555 !important;
+    }
+
+    .author__bio strong,
+    .author__bio b {
+        color: #1a5276 !important;
+    }
+
+    .author__urls a {
+        color: #555 !important;
+    }
+
+    .author__urls a:hover {
+        color: #555 !important;
+    }
+
+    .author__urls .fa,
+    .author__urls .fas,
+    .author__urls .fab,
+    .author__urls .svg-inline--fa {
+        color: #555 !important;
+    }
+
+    .author__avatar img {
+        border: 2px solid #555 !important;
+        padding: 2px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    /* ===================================
+       POST KARTLARI - SAĞA DOĞRU UZUN
+       =================================== */
+    .archive__item {
+        background: #ffffff !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+        margin-bottom: 1.5rem !important;
+        padding: 1.5rem !important;
+        width: 100% !important;
+        /* TAM GENİŞLİK */
+        max-width: none !important;
+        /* MAX-WIDTH KALDIR */
+    }
+
+    .archive__item-title a {
+        color: #1a5276 !important;
+        font-family: 'Roboto Slab', Georgia, serif !important;
+        font-weight: 600 !important;
+        font-size: 1.2rem !important;
+        line-height: 1.3 !important;
+        text-decoration: none !important;
+    }
+
+    .archive__item-title a:hover {
+        color: #1a5276 !important;
+        text-decoration: underline !important;
+    }
+
+    /* EXCERPT - 0.8rem */
+    .archive__item-excerpt {
+        color: #555 !important;
+        font-size: 0.8rem !important;
+        line-height: 1.5 !important;
+        margin: 0.5rem 0 0.75rem 0 !important;
+    }
+
+    .archive__item-excerpt p {
+        color: #555 !important;
+        font-size: 0.8rem !important;
+        margin: 0 !important;
+    }
+
+    /* READ TIME - 0.8rem */
+    .page__meta,
+    .page__meta i {
+        color: #777 !important;
+        font-size: 0.7rem !important;
+        margin: 0 !important;
+    }
+
+    /* ===================================
+       FOOTER
+       =================================== */
+    .page__footer {
+        background-color: #2c3e50 !important;
+        color: #ecf0f1 !important;
+    }
+
+    .page__footer a {
+        color: #ffffff !important;
+        font-weight: 500 !important;
+    }
+
+    .page__footer a:hover {
+        color: #555 !important;
+    }
+
+    .page__footer .fa,
+    .page__footer .fas,
+    .page__footer .fab,
+    .page__footer .svg-inline--fa {
+        color: #ffffff !important;
+        margin-right: 0.3rem !important;
+    }
+
+    .page__footer-copyright {
+        font-weight: 400 !important;
+        color: #95a5a6 !important;
+    }
+
+    .page__footer-copyright a {
+        color: #95a5a6 !important;
+    }
+
+    .page__footer-copyright a:hover {
+        color: #ffffff !important;
+    }
+
+    /* BAŞLIK - TEK SATIR (nowrap) */
+    .archive__item-title {
+        margin: 0 0 0.5rem 0 !important;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        /* max 2 satır */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .archive__item-title a {
+        color: #1a5276 !important;
+        font-family: 'Roboto Slab', Georgia, serif !important;
+        font-weight: 600 !important;
+        font-size: 1.2rem !important;
+        line-height: 1.3 !important;
+        text-decoration: none !important;
+        display: block !important;
+        /* Blok element */
+    }
+
+    /* Başlık rengi siyah */
+    .page__title {
+        color: #555 !important;
+    }
+
+    /* ===================================
+   POST İÇİ BAŞLIK - TÜM BOŞLUKLARI SIFIRLA
+   =================================== */
+
+    /* h1 ve tüm çocukları */
+    h1.page__title,
+    h1.page__title *,
+    .page__title,
+    .page__title * {
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+    }
+
+    /* 2 minute read */
+    p.page__meta,
+    .page__meta {
+        margin: 0 !important;
+        padding: 0 !important;
+        margin-top: 0.25rem !important;
+        margin-bottom: 1rem !important;
+        /* İstediğiniz değer */
+        /* veya tamamen 0 */
+    }
+
+    /* Linklerin margin/padding'i */
+    .page__title a,
+    .page__title a:hover {
+        margin: 0 !important;
+        padding: 0 !important;
+        display: inline !important;
+    }
+</style>
+  </head>
+
+  <body class="layout--single wide">
+    <nav class="skip-links">
+  <ul>
+    <li><a href="#site-nav" class="screen-reader-shortcut">Skip to primary navigation</a></li>
+    <li><a href="#main" class="screen-reader-shortcut">Skip to content</a></li>
+    <li><a href="#footer" class="screen-reader-shortcut">Skip to footer</a></li>
+  </ul>
+</nav>
+
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        
+        <a class="site-title" href="/">
+          All About Azure
+          <span class="site-subtitle"> and a Cup of Coffee ☕</span>
+        </a>
+        <ul class="visible-links"><li class="masthead__menu-item">
+              <a href="/aboutme/">About Me</a>
+            </li><li class="masthead__menu-item">
+              <a href="/year-archive/">Archive</a>
+            </li><li class="masthead__menu-item">
+              <a href="/tags/">Posts by Tag</a>
+            </li><li class="masthead__menu-item">
+              <a href="https://martinemre.github.io/">Türkçe</a>
+            </li></ul>
+        
+        <button class="search__toggle" type="button">
+          <span class="visually-hidden">Toggle search</span>
+          <i class="fas fa-search"></i>
+        </button>
+        
+        <button class="greedy-nav__toggle hidden" type="button">
+          <span class="visually-hidden">Toggle menu</span>
+          <div class="navicon"></div>
+        </button>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+
+    <div class="initial-content">
+      
+
+
+
+
+
+<div id="main" role="main">
+  
+  <div class="sidebar sticky">
+  
+
+
+<div itemscope itemtype="https://schema.org/Person" class="h-card">
+
+  
+    <div class="author__avatar">
+      <a href="https://martinemre.github.io/">
+        <img src="/assets/images/Profile/me.jpg" alt="Emre Martin" itemprop="image" class="u-photo">
+      </a>
+    </div>
+  
+
+  <div class="author__content">
+    <h3 class="author__name p-name" itemprop="name">
+      <a class="u-url" rel="me" href="https://martinemre.github.io/" itemprop="url">Emre Martin</a>
+    </h3>
+    
+      <div class="author__bio p-note" itemprop="description">
+        <p>Senior <strong>Azure</strong> Consultant</p>
+
+      </div>
+    
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+        <li itemprop="homeLocation" itemscope itemtype="https://schema.org/Place">
+          <i class="fas fa-fw fa-map-marker-alt" aria-hidden="true"></i> <span itemprop="name" class="p-locality">Dublin, IE</span>
+        </li>
+      
+
+      
+        
+          
+            <li><a href="https://martinemre.github.io/" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fas fa-fw fa-link" aria-hidden="true"></i><span class="label">Website</span></a></li>
+          
+        
+          
+            <li><a href="https://twitter.com/emr3martin" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-fw fa-twitter-square" aria-hidden="true"></i><span class="label">Twitter</span></a></li>
+          
+        
+          
+            <li><a href="https://github.com/martinemre" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-fw fa-github" aria-hidden="true"></i><span class="label">GitHub</span></a></li>
+          
+        
+          
+            <li><a href="https://www.linkedin.com/in/martinemre//" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i><span class="label">LinkedIn</span></a></li>
+          
+        
+          
+            <li><a href="https://instagram.com/mrmartinls" rel="nofollow noopener noreferrer me" itemprop="sameAs"><i class="fab fa-fw fa-instagram" aria-hidden="true"></i><span class="label">Instagram</span></a></li>
+          
+        
+      
+
+      
+
+      
+        <li>
+          <a href="mailto:martinemre@outlook.com" rel="me" class="u-email">
+            <meta itemprop="email" content="martinemre@outlook.com" />
+            <i class="fas fa-fw fa-envelope-square" aria-hidden="true"></i><span class="label">Email</span>
+          </a>
+        </li>
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      <!--
+  <li>
+    <a href="http://link-to-whatever-social-network.com/user/" itemprop="sameAs" rel="nofollow noopener noreferrer me">
+      <i class="fas fa-fw" aria-hidden="true"></i> Custom Social Profile Link
+    </a>
+  </li>
+-->
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+
+  <article class="page h-entry" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <meta itemprop="headline" content="Azure SQL Database Migration Between Tenants with Azure DevOps Pipeline">
+    
+    <meta itemprop="description" content="Learn how to automate Azure SQL database migration between tenants using Azure DevOps.">
+    
+    
+    <meta itemprop="datePublished" content="2026-05-16T00:00:00+00:00">
+    
+
+    <div class="page__inner-wrap">
+      
+      <header>
+        <h1 id="page-title" class="page__title p-name" itemprop="headline">
+          <a href="https://martinemre.github.io/azure%20devops/azure-sql-migraiton-pipeline/" class="u-url" itemprop="url"><p>Azure SQL Database Migration Between Tenants with Azure DevOps Pipeline
+
+          </a>
+        </h1>
+        
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          6 minute read
+        
+      </span>
+    
+  </p>
+
+
+      </header>
+      
+
+      <section class="page__content e-content" itemprop="text">
+        
+        <h2 id="what-i-needed">What I Needed</h2>
+
+<p>As part of a migration project, I needed to copy numerous Azure SQL databases belonging to different environments from one Azure tenant to another. This copy operation had to be repeated multiple times before the cutover date so that all necessary testing could be completed.</p>
+
+<p>There were more than 24 databases in total, and trying to handle everything through manual export import processes was becoming unmanageable. With so many variables in play, doing it by hand was not just tedious, it was putting the entire process at risk.</p>
+
+<p>So I decided to build an automation layer that would make the database copying reliable, repeatable, and sustainable.
+My first thought was to use Azure Data Factory. But copying via ADF meant selecting tables one by one, and every single run required recreating the schema and permissions from scratch. It quickly became clear that this approach was not going to scale, so I dropped it before sinking too much time into it and pivoted to automating the whole thing through an Azure DevOps pipeline.</p>
+
+<p>To keep things organized and make it easier to spot problems when they popped up, I broke the copying process down into distinct stages. Inside the pipeline, I designed each step as a separate stage:</p>
+
+<p><img src="/assets\images\pipelines\sql-migration-pipeline.png" alt="Draft" /></p>
+
+<h2 id="workflow">Workflow</h2>
+
+<p>The pipeline was structured around the following stages:</p>
+<ul>
+  <li>1.Exporting the source database</li>
+  <li>2.Renaming the existing database on the target Azure SQL server as a backup</li>
+  <li>3.Temporarily upscaling the target Azure SQL database SKU</li>
+  <li>4.Importing the source database into the target environment</li>
+  <li>5.Reducing the maximum database size</li>
+  <li>6.Disabling the Read Scale feature</li>
+  <li>7.Downscaling the target Azure SQL database SKU back to its original level</li>
+</ul>
+
+<h2 id="stage-details">Stage Details</h2>
+
+<p>The target environment where I needed to perform the database copying had extremely restricted network access. Because of this, external access to Azure SQL databases was simply not possible. This constraint meant I couldn’t use a Microsoft-hosted agent and had to go with a self-hosted agent instead.</p>
+
+<p>To handle the export and import operations, I set up a self-hosted agent on a Linux VM located inside the target tenant and ran the entire process from that machine.</p>
+
+<p><strong>1.</strong> In the first step, the pipeline connects to the source Azure SQL database and exports it to the /tmp directory on the self-hosted agent. Since /tmp is ephemeral, those files would be gone if the agent ever restarted. For a more reliable and sustainable setup, you might want to store the exported .bacpac file in Azure Blob Storage instead.</p>
+
+<div class="language-hcl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># =========================</span>
+<span class="c1"># Stage 1 - Export</span>
+<span class="c1"># =========================</span>
+<span class="err">-</span> <span class="nx">stage</span><span class="err">:</span> <span class="nx">ExportDatabase</span>
+  <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Export</span> <span class="nx">Source</span> <span class="nx">Database</span>
+  <span class="nx">jobs</span><span class="err">:</span>
+    <span class="err">-</span> <span class="nx">job</span><span class="err">:</span> <span class="nx">ExportJob</span>
+      <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Export</span> <span class="nx">SQL</span> <span class="nx">DB</span>
+      <span class="nx">timeoutInMinutes</span><span class="err">:</span> <span class="mi">180</span>
+      <span class="nx">steps</span><span class="err">:</span>
+        <span class="err">-</span> <span class="nx">task</span><span class="err">:</span> <span class="nx">Bash</span><span class="err">@</span><span class="mi">3</span>
+          <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Export</span> <span class="nx">SQL</span> <span class="nx">DB</span>
+          <span class="nx">inputs</span><span class="err">:</span>
+            <span class="nx">targetType</span><span class="err">:</span> <span class="nx">inline</span>
+            <span class="nx">script</span><span class="err">:</span> <span class="err">|</span>
+              <span class="nx">sqlpackage</span> <span class="err">/</span><span class="nx">Action</span><span class="err">:</span><span class="nx">Export</span> <span class="err">\</span>
+                <span class="err">/</span><span class="nx">SourceServerName</span><span class="err">:</span><span class="s2">"$(sourceServer)"</span> <span class="err">\</span>
+                <span class="err">/</span><span class="nx">SourceDatabaseName</span><span class="err">:</span><span class="s2">"$(sourceDatabase)"</span> <span class="err">\</span>
+                <span class="err">/</span><span class="nx">SourceUser</span><span class="err">:</span><span class="s2">"$(sourceSqlUser)"</span> <span class="err">\</span>
+                <span class="err">/</span><span class="nx">SourcePassword</span><span class="err">:</span><span class="s2">"$(sourceSqlPassword)"</span> <span class="err">\</span>
+                <span class="err">/</span><span class="nx">TargetFile</span><span class="err">:</span><span class="s2">"/tmp/$(projectName).bacpac"</span>
+</code></pre></div></div>
+<p><strong>2.</strong> In the second step, since the database copy operation needed to be repeated multiple times before the cutover date, I decided to rename the existing database in the target environment before each run. This way, the previous version stays intact and can be deleted manually when needed. It also adds a layer of safety by enabling a quick rollback if something goes wrong.</p>
+
+<div class="language-hcl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># =========================</span>
+<span class="c1"># Stage 2 - Rename Existing Target DB</span>
+<span class="c1"># =========================</span>
+<span class="err">-</span> <span class="nx">stage</span><span class="err">:</span> <span class="nx">RenameTargetDatabase</span>
+  <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Rename</span> <span class="nx">Existing</span> <span class="nx">Target</span> <span class="nx">Database</span>
+  <span class="nx">dependsOn</span><span class="err">:</span> <span class="nx">ExportDatabase</span>
+  <span class="nx">condition</span><span class="err">:</span> <span class="nx">succeeded</span><span class="err">()</span>
+  <span class="nx">jobs</span><span class="err">:</span>
+    <span class="err">-</span> <span class="nx">job</span><span class="err">:</span> <span class="nx">RenameJob</span>
+      <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Rename</span> <span class="nx">Existing</span> <span class="nx">Target</span> <span class="nx">DB</span>
+      <span class="nx">steps</span><span class="err">:</span>
+        <span class="err">-</span> <span class="nx">task</span><span class="err">:</span> <span class="nx">Bash</span><span class="err">@</span><span class="mi">3</span>
+          <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Rename</span> <span class="nx">Target</span> <span class="nx">Database</span>
+          <span class="nx">inputs</span><span class="err">:</span>
+            <span class="nx">targetType</span><span class="err">:</span> <span class="nx">inline</span>
+            <span class="nx">script</span><span class="err">:</span> <span class="err">|</span>
+              <span class="nx">export</span> <span class="nx">PATH</span><span class="err">=</span><span class="s2">"$PATH:/opt/mssql-tools/bin"</span>
+
+              <span class="nx">TIMESTAMP</span><span class="err">=</span><span class="nx">$</span><span class="err">(</span><span class="nx">date</span> <span class="err">+%</span><span class="nx">Y</span><span class="err">%</span><span class="nx">m</span><span class="err">%</span><span class="nx">d_</span><span class="err">%</span><span class="nx">H</span><span class="err">%</span><span class="nx">M</span><span class="err">%</span><span class="nx">S</span><span class="err">)</span>
+              <span class="nx">BACKUP_DB_NAME</span><span class="err">=</span><span class="s2">"$(targetDatabase)_backup_${TIMESTAMP}"</span>
+
+              <span class="nx">sqlcmd</span> <span class="err">\</span>
+                <span class="err">-</span><span class="nx">S</span> <span class="s2">"$(targetServer)"</span> <span class="err">\</span>
+                <span class="err">-</span><span class="nx">U</span> <span class="s2">"$(targetSqlUser)"</span> <span class="err">\</span>
+                <span class="err">-</span><span class="nx">P</span> <span class="s2">"$(targetSqlPassword)"</span> <span class="err">\</span>
+                <span class="err">-</span><span class="nx">d</span> <span class="nx">master</span> <span class="err">\</span>
+                <span class="err">-</span><span class="nx">Q</span> <span class="s2">"ALTER DATABASE [$(targetDatabase)] MODIFY NAME = [${BACKUP_DB_NAME}]"</span>
+</code></pre></div></div>
+<p><strong>3.</strong> In the next step, I noticed that importing with the existing SKU was taking well over 90 minutes. So before starting the import, I temporarily bumped the target Azure SQL database up to a Premium SKU. The Premium tier’s higher I/O and DTU capacity made a huge difference, cutting the import time down to roughly 20 minutes.</p>
+
+<div class="language-hcl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># =========================</span>
+<span class="c1"># Stage 3 - Create New Premium DB</span>
+<span class="c1"># =========================</span>
+<span class="err">-</span> <span class="nx">stage</span><span class="err">:</span> <span class="nx">CreatePremiumDatabase</span>
+  <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Create</span> <span class="nx">Premium</span> <span class="nx">Target</span> <span class="nx">Database</span>
+  <span class="nx">dependsOn</span><span class="err">:</span> <span class="nx">RenameTargetDatabase</span>
+  <span class="nx">condition</span><span class="err">:</span> <span class="nx">succeeded</span><span class="err">()</span>
+  <span class="nx">jobs</span><span class="err">:</span>
+    <span class="err">-</span> <span class="nx">job</span><span class="err">:</span> <span class="nx">CreateDbJob</span>
+      <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Create</span> <span class="nx">Premium</span> <span class="nx">SQL</span> <span class="nx">DB</span>
+      <span class="nx">steps</span><span class="err">:</span>
+        <span class="err">-</span> <span class="nx">task</span><span class="err">:</span> <span class="nx">AzureCLI</span><span class="err">@</span><span class="mi">2</span>
+          <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Create</span> <span class="nx">Premium</span> <span class="nx">SQL</span> <span class="nx">DB</span>
+          <span class="nx">inputs</span><span class="err">:</span>
+            <span class="nx">azureSubscription</span><span class="err">:</span> <span class="s1">'xx-xx-xx'</span>
+            <span class="nx">scriptType</span><span class="err">:</span> <span class="nx">bash</span>
+            <span class="nx">scriptLocation</span><span class="err">:</span> <span class="nx">inlineScript</span>
+            <span class="nx">inlineScript</span><span class="err">:</span> <span class="err">|</span>
+              <span class="nx">az</span> <span class="nx">sql</span> <span class="nx">db</span> <span class="nx">create</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">resource</span><span class="err">-</span><span class="nx">group</span> <span class="s2">"$(targetResourceGroup)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">server</span> <span class="s2">"$(targetServerLogical)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">name</span> <span class="s2">"$(targetDatabase)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">service</span><span class="err">-</span><span class="nx">objective</span> <span class="s2">"$(importSku)"</span>
+</code></pre></div></div>
+<p><strong>4.</strong> At this point, I imported the database that had been exported on the Linux VM into the target Azure SQL database, which I had already scaled up to Premium in the previous step.</p>
+
+<div class="language-hcl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># =========================</span>
+<span class="c1"># Stage 4 - Import</span>
+<span class="c1"># =========================</span>
+<span class="err">-</span> <span class="nx">stage</span><span class="err">:</span> <span class="nx">ImportDatabase</span>
+  <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Import</span> <span class="nx">Target</span> <span class="nx">Database</span>
+  <span class="nx">dependsOn</span><span class="err">:</span> <span class="nx">CreatePremiumDatabase</span>
+  <span class="nx">condition</span><span class="err">:</span> <span class="nx">succeeded</span><span class="err">()</span>
+  <span class="nx">jobs</span><span class="err">:</span>
+    <span class="err">-</span> <span class="nx">job</span><span class="err">:</span> <span class="nx">ImportJob</span>
+      <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Import</span> <span class="nx">SQL</span> <span class="nx">DB</span>
+      <span class="nx">timeoutInMinutes</span><span class="err">:</span> <span class="mi">240</span>
+      <span class="nx">steps</span><span class="err">:</span>
+        <span class="err">-</span> <span class="nx">task</span><span class="err">:</span> <span class="nx">Bash</span><span class="err">@</span><span class="mi">3</span>
+          <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Import</span> <span class="nx">SQL</span> <span class="nx">DB</span>
+          <span class="nx">inputs</span><span class="err">:</span>
+            <span class="nx">targetType</span><span class="err">:</span> <span class="nx">inline</span>
+            <span class="nx">script</span><span class="err">:</span> <span class="err">|</span>
+              <span class="nx">sqlpackage</span> <span class="err">/</span><span class="nx">Action</span><span class="err">:</span><span class="nx">Import</span> <span class="err">\</span>
+                <span class="err">/</span><span class="nx">TargetServerName</span><span class="err">:</span><span class="s2">"$(targetServer)"</span> <span class="err">\</span>
+                <span class="err">/</span><span class="nx">TargetDatabaseName</span><span class="err">:</span><span class="s2">"$(targetDatabase)"</span> <span class="err">\</span>
+                <span class="err">/</span><span class="nx">TargetUser</span><span class="err">:</span><span class="s2">"$(targetSqlUser)"</span> <span class="err">\</span>
+                <span class="err">/</span><span class="nx">TargetPassword</span><span class="err">:</span><span class="s2">"$(targetSqlPassword)"</span> <span class="err">\</span>
+                <span class="err">/</span><span class="nx">SourceFile</span><span class="err">:</span><span class="s2">"/tmp/$(projectName).bacpac"</span>
+</code></pre></div></div>
+<p><strong>5.</strong> Once the import was done, I had to bring the maximum database size down below 250 GB before I could scale back to the Standard SKU. The target Standard tier simply does not support database sizes above 250 GB, so this was a necessary step.</p>
+
+<div class="language-hcl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># =========================</span>
+<span class="c1"># Stage 5 - Reduce Max Size</span>
+<span class="c1"># =========================</span>
+<span class="err">-</span> <span class="nx">stage</span><span class="err">:</span> <span class="nx">ReduceDatabaseMaxSize</span>
+  <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Reduce</span> <span class="nx">Database</span> <span class="nx">Max</span> <span class="nx">Size</span>
+  <span class="nx">dependsOn</span><span class="err">:</span> <span class="nx">ImportDatabase</span>
+  <span class="nx">condition</span><span class="err">:</span> <span class="nx">succeeded</span><span class="err">()</span>
+  <span class="nx">jobs</span><span class="err">:</span>
+    <span class="err">-</span> <span class="nx">job</span><span class="err">:</span> <span class="nx">ReduceMaxSizeJob</span>
+      <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Reduce</span> <span class="nx">SQL</span> <span class="nx">DB</span> <span class="nx">Max</span> <span class="nx">Size</span>
+      <span class="nx">steps</span><span class="err">:</span>
+        <span class="err">-</span> <span class="nx">task</span><span class="err">:</span> <span class="nx">AzureCLI</span><span class="err">@</span><span class="mi">2</span>
+          <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Reduce</span> <span class="nx">Max</span> <span class="nx">Size</span> <span class="nx">to</span> <span class="mi">200G</span><span class="nx">B</span>
+          <span class="nx">inputs</span><span class="err">:</span>
+            <span class="nx">azureSubscription</span><span class="err">:</span> <span class="s1">'xx-xx-xx'</span>
+            <span class="nx">scriptType</span><span class="err">:</span> <span class="nx">bash</span>
+            <span class="nx">scriptLocation</span><span class="err">:</span> <span class="nx">inlineScript</span>
+            <span class="nx">inlineScript</span><span class="err">:</span> <span class="err">|</span>
+              <span class="nx">az</span> <span class="nx">sql</span> <span class="nx">db</span> <span class="nx">update</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">resource</span><span class="err">-</span><span class="nx">group</span> <span class="s2">"$(targetResourceGroup)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">server</span> <span class="s2">"$(targetServerLogical)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">name</span> <span class="s2">"$(targetDatabase)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">max</span><span class="err">-</span><span class="nx">size</span> <span class="mi">200G</span><span class="nx">B</span>
+</code></pre></div></div>
+<p><strong>6.</strong> In this step, to further reduce the database size and make the transition to Standard SKU possible, I disabled the Read Scale feature, which comes enabled by default with the Premium SKU.</p>
+
+<div class="language-hcl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># =========================</span>
+<span class="c1"># Stage 6 - Disable Read Scale</span>
+<span class="c1"># =========================</span>
+<span class="err">-</span> <span class="nx">stage</span><span class="err">:</span> <span class="nx">DisableReadScale</span>
+  <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Disable</span> <span class="nx">Read</span> <span class="nx">Scale</span>
+  <span class="nx">dependsOn</span><span class="err">:</span> <span class="nx">ReduceDatabaseMaxSize</span>
+  <span class="nx">condition</span><span class="err">:</span> <span class="nx">succeeded</span><span class="err">()</span>
+  <span class="nx">jobs</span><span class="err">:</span>
+    <span class="err">-</span> <span class="nx">job</span><span class="err">:</span> <span class="nx">DisableReadScaleJob</span>
+      <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Disable</span> <span class="nx">SQL</span> <span class="nx">DB</span> <span class="nx">Read</span> <span class="nx">Scale</span>
+      <span class="nx">steps</span><span class="err">:</span>
+        <span class="err">-</span> <span class="nx">task</span><span class="err">:</span> <span class="nx">AzureCLI</span><span class="err">@</span><span class="mi">2</span>
+          <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Disable</span> <span class="nx">Read</span> <span class="nx">Scale</span>
+          <span class="nx">inputs</span><span class="err">:</span>
+            <span class="nx">azureSubscription</span><span class="err">:</span> <span class="s1">'xx-xx-xx'</span>
+            <span class="nx">scriptType</span><span class="err">:</span> <span class="nx">bash</span>
+            <span class="nx">scriptLocation</span><span class="err">:</span> <span class="nx">inlineScript</span>
+            <span class="nx">inlineScript</span><span class="err">:</span> <span class="err">|</span>
+              <span class="nx">az</span> <span class="nx">sql</span> <span class="nx">db</span> <span class="nx">update</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">resource</span><span class="err">-</span><span class="nx">group</span> <span class="s2">"$(targetResourceGroup)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">server</span> <span class="s2">"$(targetServerLogical)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">name</span> <span class="s2">"$(targetDatabase)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">read</span><span class="err">-</span><span class="nx">scale</span> <span class="nx">Disabled</span>
+</code></pre></div></div>
+<p><strong>7.</strong> Finally, I scaled the database SKU back down to Standard to align with the target configuration.</p>
+
+<div class="language-hcl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># =========================</span>
+<span class="c1"># Stage 7 - Scale Down to Standard S1</span>
+<span class="c1"># =========================</span>
+<span class="err">-</span> <span class="nx">stage</span><span class="err">:</span> <span class="nx">ScaleDownDatabase</span>
+  <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Scale</span> <span class="nx">Down</span> <span class="nx">SQL</span> <span class="nx">Database</span>
+  <span class="nx">dependsOn</span><span class="err">:</span> <span class="nx">DisableReadScale</span>
+  <span class="nx">condition</span><span class="err">:</span> <span class="nx">succeeded</span><span class="err">()</span>
+  <span class="nx">jobs</span><span class="err">:</span>
+    <span class="err">-</span> <span class="nx">job</span><span class="err">:</span> <span class="nx">ScaleDownJob</span>
+      <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Scale</span> <span class="nx">Down</span> <span class="nx">SQL</span> <span class="nx">DB</span>
+      <span class="nx">steps</span><span class="err">:</span>
+        <span class="err">-</span> <span class="nx">task</span><span class="err">:</span> <span class="nx">AzureCLI</span><span class="err">@</span><span class="mi">2</span>
+          <span class="nx">displayName</span><span class="err">:</span> <span class="nx">Scale</span> <span class="nx">SQL</span> <span class="nx">DB</span> <span class="nx">to</span> <span class="nx">S1</span>
+          <span class="nx">inputs</span><span class="err">:</span>
+            <span class="nx">azureSubscription</span><span class="err">:</span> <span class="s1">'xx-xx-xx'</span>
+            <span class="nx">scriptType</span><span class="err">:</span> <span class="nx">bash</span>
+            <span class="nx">scriptLocation</span><span class="err">:</span> <span class="nx">inlineScript</span>
+            <span class="nx">inlineScript</span><span class="err">:</span> <span class="err">|</span>
+              <span class="nx">az</span> <span class="nx">sql</span> <span class="nx">db</span> <span class="nx">update</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">resource</span><span class="err">-</span><span class="nx">group</span> <span class="s2">"$(targetResourceGroup)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">server</span> <span class="s2">"$(targetServerLogical)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">name</span> <span class="s2">"$(targetDatabase)"</span> <span class="err">\</span>
+                <span class="err">--</span><span class="nx">service</span><span class="err">-</span><span class="nx">objective</span> <span class="s2">"$(finalSku)"</span>
+</code></pre></div></div>
+
+<h2 id="final-notes">Final Notes</h2>
+
+<p>This pipeline is currently meeting our needs and is actively in use. That said, I am already planning the next round of improvements to make the process safer, more observable, and easier to maintain:</p>
+<ul>
+  <li>Adding a Pre-Stage to each pipeline run to verify database availability, connectivity, and permissions before anything else kicks off</li>
+  <li>Replacing the /tmp directory with Azure Blob Storage as a more reliable and persistent solution</li>
+  <li>Moving SQL credentials out of pipeline variables and into Azure Key Vault</li>
+  <li>Introducing a Validation Stage after import to compare table counts and database sizes as a sanity check</li>
+  <li>Building in a Rollback Stage that can be triggered if the export phase fails</li>
+  <li>Setting up proper logging to track import and export durations, sending logs to Log Analytics, and setting up alerts for error conditions</li>
+</ul>
+
+<h2 id="full-pipeline">Full Pipeline</h2>
+
+<p>The complete version of the pipeline used in this article, including YAML files and supporting scripts, is available in the GitHub repository below:</p>
+
+<p><a href="https://github.com/martinemre/Platform-Automation/blob/main/Azure-SQL-Migration-v0.1.yml">Azure SQL Migration Pipeline</a></p>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+  
+
+
+  
+
+  <p class="page__taxonomy">
+    <strong><i class="fas fa-fw fa-tags" aria-hidden="true"></i> Tags: </strong>
+    <span itemprop="keywords">
+    
+      <a href="/tags/#azure-sql" class="page__taxonomy-item p-category" rel="tag">Azure SQL</a><span class="sep">, </span>
+    
+      <a href="/tags/#migration" class="page__taxonomy-item p-category" rel="tag">Migration</a>
+    
+    </span>
+  </p>
+
+
+
+
+  
+
+
+  
+
+  <p class="page__taxonomy">
+    <strong><i class="fas fa-fw fa-folder-open" aria-hidden="true"></i> Categories: </strong>
+    <span itemprop="keywords">
+    
+      <a href="/categories/#azure-devops" class="page__taxonomy-item p-category" rel="tag">Azure DevOps</a>
+    
+    </span>
+  </p>
+
+
+        
+
+  <p class="page__date"><strong><i class="fas fa-fw fa-calendar-alt" aria-hidden="true"></i> Updated:</strong> <time class="dt-published" datetime="2026-05-16T00:00:00+00:00">May 16, 2026</time></p>
+
+      </footer>
+
+      <section class="page__share">
+  
+
+  <a href="https://twitter.com/intent/tweet?via=username&text=Azure+SQL+Database+Migration+Between+Tenants+with+Azure+DevOps+Pipeline%20https%3A%2F%2Fmartinemre.github.io%2Fazure%2520devops%2Fazure-sql-migraiton-pipeline%2F" class="btn btn--twitter" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Twitter"><i class="fab fa-fw fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fmartinemre.github.io%2Fazure%2520devops%2Fazure-sql-migraiton-pipeline%2F" class="btn btn--facebook" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on Facebook"><i class="fab fa-fw fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A%2F%2Fmartinemre.github.io%2Fazure%2520devops%2Fazure-sql-migraiton-pipeline%2F" class="btn btn--linkedin" onclick="window.open(this.href, 'window', 'left=20,top=20,width=500,height=500,toolbar=1,resizable=0'); return false;" title="Share on LinkedIn"><i class="fab fa-fw fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+
+      
+  <nav class="pagination">
+    
+      <a href="/azure%20devops/terraform-statefile/" class="pagination--pager" title="Terraform State: The Silent Source of Truth
+">Previous</a>
+    
+    
+      <a href="#" class="pagination--pager disabled">Next</a>
+    
+  </nav>
+
+    </div>
+
+    
+    <div style="margin-top: 40px;"></div>
+    <div class="page__comments">
+  
+  
+      <h4 class="page__comments-title">Comments</h4>
+      <section id="giscus-comments"></section>
+    
+</div>
+
+    
+  </article>
+
+  
+  
+  <div class="page__related">
+    <h2 class="page__related-title">You May Also Enjoy
+    </h2>
+    <div class="grid__wrapper">
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+      <a href="/azure%20devops/terraform-statefile/" rel="permalink">Terraform State: The Silent Source of Truth
+</a>
+      
+    </h2>
+
+    <!-- EXCERPT BURAYA EKLENDİ -->
+    
+    <p class="archive__item-excerpt" itemprop="description">
+      Learn how Terraform State File works, why it matters, and how to prevent drift, state mismatch, and deployment issues in production.
+
+    </p>
+    
+
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          6 minute read
+        
+      </span>
+    
+  </p>
+
+
+  </article>
+</div>
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+      <a href="/azure%20network/azure-firewall-prescaling/" rel="permalink">Azure Firewall Prescaling: Preventing Black Friday Spikes Before Autoscale Reacts
+</a>
+      
+    </h2>
+
+    <!-- EXCERPT BURAYA EKLENDİ -->
+    
+    <p class="archive__item-excerpt" itemprop="description">
+      Learn how Azure Firewall Prescaling prevents latency during sudden traffic spikes before autoscale reacts.
+
+    </p>
+    
+
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          2 minute read
+        
+      </span>
+    
+  </p>
+
+
+  </article>
+</div>
+      
+      
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+    
+    <h2 class="archive__item-title no_toc" itemprop="headline">
+      
+      <a href="/azure%20network/azure-firewall-draft-deploy/" rel="permalink">Azure Firewall : From Incremental Updates to Atomic Policy Deployment
+</a>
+      
+    </h2>
+
+    <!-- EXCERPT BURAYA EKLENDİ -->
+    
+    <p class="archive__item-excerpt" itemprop="description">
+      Learn how Azure Draft &amp; Deploy enables safe, atomic firewall policy updates without risking production.
+
+    </p>
+    
+
+    
+
+  <p class="page__meta">
+    
+
+    
+
+    
+      
+      
+
+      <span class="page__meta-readtime">
+        <i class="far fa-clock" aria-hidden="true"></i>
+        
+          2 minute read
+        
+      </span>
+    
+  </p>
+
+
+  </article>
+</div>
+      
+    </div>
+  </div>
+  
+  
+</div>
+    </div>
+
+    
+      <div class="search-content">
+        <div class="search-content__inner-wrap"><div class="search-searchbar"></div>
+  <div class="search-hits"></div></div>
+
+      </div>
+    
+
+    <div id="footer" class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+
+<!-- end custom footer snippets -->
+        <div class="page__footer-follow">
+  <ul class="social-icons">
+    
+
+    
+      
+        
+          <li><a href="https://twitter.com/emr3martin" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-twitter-square" aria-hidden="true"></i> Twitter</a></li>
+        
+      
+        
+          <li><a href="https://github.com/martinemre" rel="nofollow noopener noreferrer"><i class="fab fa-fw fa-github" aria-hidden="true"></i> GitHub</a></li>
+        
+      
+        
+          <li><a href="/feed.xml" rel="nofollow noopener noreferrer"><i class="fas fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+        
+      
+    
+
+    
+  </ul>
+</div>
+
+<div class="page__footer-copyright">&copy; 2026 martinemre. Powered by <a href="https://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    
+  <script src="/assets/js/main.min.js"></script>
+
+
+<!-- Including InstantSearch.js library and styling -->
+<script src="https://cdn.jsdelivr.net/npm/instantsearch.js@2.3.3/dist/instantsearch.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.js@2.3.3/dist/instantsearch.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.js@2.3.3/dist/instantsearch-theme-algolia.min.css">
+
+<script>
+// Instanciating InstantSearch.js with Algolia credentials
+const search = instantsearch({
+  appId: '9LY3SECISB',
+  apiKey: '5edeea1640f08212dc4fc44ad8607667',
+  indexName: 'allaboutazure-eng',
+  searchParameters: {
+    restrictSearchableAttributes: [
+      'title',
+      'content'
+    ]
+  }
+});
+
+const hitTemplate = function(hit) {
+  const url = hit.url;
+  const hightlight = hit._highlightResult;
+  const title = hightlight.title && hightlight.title.value  || "";
+  const content = hightlight.html && hightlight.html.value  || "";
+
+  return `
+    <div class="list__item">
+      <article class="archive__item" itemscope itemtype="https://schema.org/CreativeWork">
+        <h2 class="archive__item-title" itemprop="headline"><a href="${url}">${title}</a></h2>
+        <div class="archive__item-excerpt" itemprop="description">${content}</div>
+      </article>
+    </div>
+  `;
+}
+
+// Adding searchbar and results widgets
+search.addWidget(
+  instantsearch.widgets.searchBox({
+    container: '.search-searchbar',
+    poweredBy: true,
+    placeholder: 'Enter your search term...'
+  })
+);
+search.addWidget(
+  instantsearch.widgets.hits({
+    container: '.search-hits',
+    templates: {
+      item: hitTemplate,
+      empty: 'No results',
+    }
+  })
+);
+
+// Starting the search only when toggle is clicked
+$(document).ready(function () {
+  $(".search__toggle").on("click", function() {
+    if(!search.started) {
+      search.start();
+    }
+  });
+});
+</script>
+
+
+
+
+
+    <script>
+  'use strict';
+
+  (function () {
+    var commentContainer = document.querySelector('#giscus-comments');
+
+    if (!commentContainer) {
+      return;
+    }
+
+    var script = document.createElement('script');
+    script.setAttribute('src', 'https://giscus.app/client.js');
+    script.setAttribute('data-repo', 'martinemre/martinemre.github.io');
+    script.setAttribute('data-repo-id', 'R_kgDOR5KE2Q');
+    script.setAttribute('data-category', 'Comments');
+    script.setAttribute('data-category-id', 'DIC_kwDOR5KE2c4C6Gf6');
+    script.setAttribute('data-mapping', 'pathname');
+    script.setAttribute('data-reactions-enabled', '1');
+    script.setAttribute('data-theme', 'preferred_color_scheme');
+    script.setAttribute('crossorigin', 'anonymous');
+
+    commentContainer.appendChild(script);
+  })();
+</script>
+  
+
+
+
+
+
+  </body>
+</html>

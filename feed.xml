@@ -7,6 +7,248 @@
 		<atom:link href="https://martinemre.github.io/feed.xml" rel="self" type="application/rss+xml" />
 		
 			<item>
+				<title>Azure SQL Database Migration Between Tenants with Azure DevOps Pipeline</title>
+				<description>&lt;h2 id=&quot;what-i-needed&quot;&gt;What I Needed&lt;/h2&gt;
+
+&lt;p&gt;As part of a migration project, I needed to copy numerous Azure SQL databases belonging to different environments from one Azure tenant to another. This copy operation had to be repeated multiple times before the cutover date so that all necessary testing could be completed.&lt;/p&gt;
+
+&lt;p&gt;There were more than 24 databases in total, and trying to handle everything through manual export import processes was becoming unmanageable. With so many variables in play, doing it by hand was not just tedious, it was putting the entire process at risk.&lt;/p&gt;
+
+&lt;p&gt;So I decided to build an automation layer that would make the database copying reliable, repeatable, and sustainable.
+My first thought was to use Azure Data Factory. But copying via ADF meant selecting tables one by one, and every single run required recreating the schema and permissions from scratch. It quickly became clear that this approach was not going to scale, so I dropped it before sinking too much time into it and pivoted to automating the whole thing through an Azure DevOps pipeline.&lt;/p&gt;
+
+&lt;p&gt;To keep things organized and make it easier to spot problems when they popped up, I broke the copying process down into distinct stages. Inside the pipeline, I designed each step as a separate stage:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets\images\pipelines\sql-migration-pipeline.png&quot; alt=&quot;Draft&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;workflow&quot;&gt;Workflow&lt;/h2&gt;
+
+&lt;p&gt;The pipeline was structured around the following stages:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;1.Exporting the source database&lt;/li&gt;
+  &lt;li&gt;2.Renaming the existing database on the target Azure SQL server as a backup&lt;/li&gt;
+  &lt;li&gt;3.Temporarily upscaling the target Azure SQL database SKU&lt;/li&gt;
+  &lt;li&gt;4.Importing the source database into the target environment&lt;/li&gt;
+  &lt;li&gt;5.Reducing the maximum database size&lt;/li&gt;
+  &lt;li&gt;6.Disabling the Read Scale feature&lt;/li&gt;
+  &lt;li&gt;7.Downscaling the target Azure SQL database SKU back to its original level&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;stage-details&quot;&gt;Stage Details&lt;/h2&gt;
+
+&lt;p&gt;The target environment where I needed to perform the database copying had extremely restricted network access. Because of this, external access to Azure SQL databases was simply not possible. This constraint meant I couldn’t use a Microsoft-hosted agent and had to go with a self-hosted agent instead.&lt;/p&gt;
+
+&lt;p&gt;To handle the export and import operations, I set up a self-hosted agent on a Linux VM located inside the target tenant and ran the entire process from that machine.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;1.&lt;/strong&gt; In the first step, the pipeline connects to the source Azure SQL database and exports it to the /tmp directory on the self-hosted agent. Since /tmp is ephemeral, those files would be gone if the agent ever restarted. For a more reliable and sustainable setup, you might want to store the exported .bacpac file in Azure Blob Storage instead.&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# Stage 1 - Export&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ExportDatabase&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Export&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Source&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Database&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;jobs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;job&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ExportJob&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Export&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;SQL&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DB&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;timeoutInMinutes&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;180&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;steps&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Bash&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Export&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;SQL&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DB&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;inputs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;targetType&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;inline&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;|&lt;/span&gt;
+              &lt;span class=&quot;nx&quot;&gt;sqlpackage&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Action&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Export&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;SourceServerName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(sourceServer)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;SourceDatabaseName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(sourceDatabase)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;SourceUser&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(sourceSqlUser)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;SourcePassword&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(sourceSqlPassword)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;TargetFile&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/tmp/$(projectName).bacpac&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;2.&lt;/strong&gt; In the second step, since the database copy operation needed to be repeated multiple times before the cutover date, I decided to rename the existing database in the target environment before each run. This way, the previous version stays intact and can be deleted manually when needed. It also adds a layer of safety by enabling a quick rollback if something goes wrong.&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# Stage 2 - Rename Existing Target DB&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;RenameTargetDatabase&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Rename&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Existing&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Target&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Database&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;dependsOn&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ExportDatabase&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;condition&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;succeeded&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;jobs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;job&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;RenameJob&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Rename&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Existing&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Target&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DB&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;steps&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Bash&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Rename&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Target&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Database&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;inputs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;targetType&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;inline&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;|&lt;/span&gt;
+              &lt;span class=&quot;nx&quot;&gt;export&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;PATH&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$PATH:/opt/mssql-tools/bin&quot;&lt;/span&gt;
+
+              &lt;span class=&quot;nx&quot;&gt;TIMESTAMP&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;date&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;+%&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;d_&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;H&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;M&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;S&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt;
+              &lt;span class=&quot;nx&quot;&gt;BACKUP_DB_NAME&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(targetDatabase)_backup_${TIMESTAMP}&quot;&lt;/span&gt;
+
+              &lt;span class=&quot;nx&quot;&gt;sqlcmd&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;S&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetServer)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;U&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetSqlUser)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;P&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetSqlPassword)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;d&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;master&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Q&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ALTER DATABASE [$(targetDatabase)] MODIFY NAME = [${BACKUP_DB_NAME}]&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;3.&lt;/strong&gt; In the next step, I noticed that importing with the existing SKU was taking well over 90 minutes. So before starting the import, I temporarily bumped the target Azure SQL database up to a Premium SKU. The Premium tier’s higher I/O and DTU capacity made a huge difference, cutting the import time down to roughly 20 minutes.&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# Stage 3 - Create New Premium DB&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;CreatePremiumDatabase&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Create&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Premium&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Target&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Database&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;dependsOn&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;RenameTargetDatabase&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;condition&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;succeeded&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;jobs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;job&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;CreateDbJob&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Create&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Premium&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;SQL&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DB&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;steps&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;AzureCLI&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Create&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Premium&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;SQL&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DB&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;inputs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;azureSubscription&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;xx-xx-xx&apos;&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;scriptType&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;bash&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;scriptLocation&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;inlineScript&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;inlineScript&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;|&lt;/span&gt;
+              &lt;span class=&quot;nx&quot;&gt;az&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sql&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;db&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;create&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;resource&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;group&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetResourceGroup)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetServerLogical)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetDatabase)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;service&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;objective&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(importSku)&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;4.&lt;/strong&gt; At this point, I imported the database that had been exported on the Linux VM into the target Azure SQL database, which I had already scaled up to Premium in the previous step.&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# Stage 4 - Import&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ImportDatabase&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Import&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Target&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Database&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;dependsOn&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;CreatePremiumDatabase&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;condition&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;succeeded&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;jobs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;job&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ImportJob&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Import&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;SQL&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DB&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;timeoutInMinutes&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;240&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;steps&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Bash&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Import&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;SQL&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DB&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;inputs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;targetType&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;inline&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;|&lt;/span&gt;
+              &lt;span class=&quot;nx&quot;&gt;sqlpackage&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Action&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Import&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;TargetServerName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(targetServer)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;TargetDatabaseName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(targetDatabase)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;TargetUser&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(targetSqlUser)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;TargetPassword&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;$(targetSqlPassword)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;SourceFile&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/tmp/$(projectName).bacpac&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;5.&lt;/strong&gt; Once the import was done, I had to bring the maximum database size down below 250 GB before I could scale back to the Standard SKU. The target Standard tier simply does not support database sizes above 250 GB, so this was a necessary step.&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# Stage 5 - Reduce Max Size&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ReduceDatabaseMaxSize&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Reduce&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Database&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Max&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Size&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;dependsOn&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ImportDatabase&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;condition&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;succeeded&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;jobs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;job&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ReduceMaxSizeJob&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Reduce&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;SQL&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DB&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Max&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Size&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;steps&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;AzureCLI&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Reduce&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Max&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Size&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200G&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;B&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;inputs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;azureSubscription&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;xx-xx-xx&apos;&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;scriptType&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;bash&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;scriptLocation&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;inlineScript&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;inlineScript&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;|&lt;/span&gt;
+              &lt;span class=&quot;nx&quot;&gt;az&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sql&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;db&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;update&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;resource&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;group&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetResourceGroup)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetServerLogical)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetDatabase)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200G&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;B&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;6.&lt;/strong&gt; In this step, to further reduce the database size and make the transition to Standard SKU possible, I disabled the Read Scale feature, which comes enabled by default with the Premium SKU.&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# Stage 6 - Disable Read Scale&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DisableReadScale&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Disable&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Read&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Scale&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;dependsOn&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ReduceDatabaseMaxSize&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;condition&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;succeeded&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;jobs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;job&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DisableReadScaleJob&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Disable&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;SQL&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DB&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Read&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Scale&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;steps&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;AzureCLI&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Disable&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Read&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Scale&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;inputs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;azureSubscription&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;xx-xx-xx&apos;&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;scriptType&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;bash&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;scriptLocation&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;inlineScript&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;inlineScript&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;|&lt;/span&gt;
+              &lt;span class=&quot;nx&quot;&gt;az&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sql&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;db&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;update&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;resource&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;group&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetResourceGroup)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetServerLogical)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetDatabase)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;scale&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Disabled&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;7.&lt;/strong&gt; Finally, I scaled the database SKU back down to Standard to align with the target configuration.&lt;/p&gt;
+
+&lt;div class=&quot;language-hcl highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# Stage 7 - Scale Down to Standard S1&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;# =========================&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ScaleDownDatabase&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Scale&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Down&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;SQL&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Database&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;dependsOn&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DisableReadScale&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;condition&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;succeeded&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;jobs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;job&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ScaleDownJob&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Scale&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Down&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;SQL&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DB&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;steps&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;err&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;task&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;AzureCLI&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;displayName&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Scale&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;SQL&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DB&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;to&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;S1&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;inputs&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;azureSubscription&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;xx-xx-xx&apos;&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;scriptType&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;bash&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;scriptLocation&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;inlineScript&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;inlineScript&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;|&lt;/span&gt;
+              &lt;span class=&quot;nx&quot;&gt;az&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;sql&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;db&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;update&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;resource&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;group&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetResourceGroup)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;server&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetServerLogical)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(targetDatabase)&quot;&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;\&lt;/span&gt;
+                &lt;span class=&quot;err&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;service&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;objective&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;$(finalSku)&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;final-notes&quot;&gt;Final Notes&lt;/h2&gt;
+
+&lt;p&gt;This pipeline is currently meeting our needs and is actively in use. That said, I am already planning the next round of improvements to make the process safer, more observable, and easier to maintain:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Adding a Pre-Stage to each pipeline run to verify database availability, connectivity, and permissions before anything else kicks off&lt;/li&gt;
+  &lt;li&gt;Replacing the /tmp directory with Azure Blob Storage as a more reliable and persistent solution&lt;/li&gt;
+  &lt;li&gt;Moving SQL credentials out of pipeline variables and into Azure Key Vault&lt;/li&gt;
+  &lt;li&gt;Introducing a Validation Stage after import to compare table counts and database sizes as a sanity check&lt;/li&gt;
+  &lt;li&gt;Building in a Rollback Stage that can be triggered if the export phase fails&lt;/li&gt;
+  &lt;li&gt;Setting up proper logging to track import and export durations, sending logs to Log Analytics, and setting up alerts for error conditions&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;full-pipeline&quot;&gt;Full Pipeline&lt;/h2&gt;
+
+&lt;p&gt;The complete version of the pipeline used in this article, including YAML files and supporting scripts, is available in the GitHub repository below:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/martinemre/Platform-Automation/blob/main/Azure-SQL-Migration-v0.1.yml&quot;&gt;Azure SQL Migration Pipeline&lt;/a&gt;&lt;/p&gt;
+</description>
+				<pubDate>Sat, 16 May 2026 00:00:00 +0000</pubDate>
+				<link>https://martinemre.github.io/azure%20devops/azure-sql-migraiton-pipeline/</link>
+				<guid isPermaLink="true">https://martinemre.github.io/azure%20devops/azure-sql-migraiton-pipeline/</guid>
+			</item>
+		
+			<item>
 				<title>Terraform State: The Silent Source of Truth</title>
 				<description>&lt;h2 id=&quot;what-is-statefile-&quot;&gt;What is StateFile ?&lt;/h2&gt;
 
@@ -140,7 +382,7 @@ Here’s how to keep things lean:&lt;/p&gt;
   &lt;li&gt;&lt;strong&gt;5. Clean Up Old Versions:&lt;/strong&gt; Versioned backends can accumulate historical copies that just add operational clutter. Prune them.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;&lt;strong&gt;Checking File Size&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Checking File Size:&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;Local:&lt;/p&gt;
 
